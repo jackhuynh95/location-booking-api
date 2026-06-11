@@ -123,7 +123,7 @@ Make the API easy to review.
 
 | # | Issue | Title | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| 5.1 | local | Sample location seed data | 3.2 | Planned |
+| 5.1 | local | Sample location seed data | 3.2 | Done |
 | 5.2 | local | API endpoint documentation | 3.3, 4.7 | Planned |
 | 5.3 | local | Error response documentation | 2.6, 4.7 | Planned |
 | 5.4 | local | Postman or HTTP examples | 5.2 | Planned |

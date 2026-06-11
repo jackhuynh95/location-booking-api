@@ -144,4 +144,92 @@ describe('LocationsController (e2e)', () => {
 
     expect(service.findOne).not.toHaveBeenCalled();
   });
+
+  it('returns seeded Building A and Building B hierarchy from tree route', async () => {
+    const httpServer = app.getHttpServer() as SupertestApp;
+
+    service.findTree.mockResolvedValue([
+      {
+        ...location,
+        building: 'A',
+        name: 'Floor 1',
+        number: 'A-01',
+        children: [
+          {
+            ...location,
+            id: '33333333-3333-4333-8333-333333333333',
+            building: 'A',
+            name: 'Meeting Room 1',
+            number: 'A-01-01',
+            department: 'EFM',
+            capacity: 10,
+            openTime: 'Mon to Fri (9AM to 6PM)',
+            isBookable: true,
+            parentId: id,
+            children: [],
+          },
+        ],
+      },
+      {
+        ...location,
+        id: '44444444-4444-4444-8444-444444444444',
+        building: 'B',
+        name: 'Floor 5',
+        number: 'B-05',
+        children: [
+          {
+            ...location,
+            id: '55555555-5555-4555-8555-555555555555',
+            building: 'B',
+            name: 'Genset Room',
+            number: 'B-05-14',
+            department: 'ASS',
+            capacity: 100,
+            openTime: 'Mon to Sun (9AM to 6PM)',
+            isBookable: true,
+            parentId: '44444444-4444-4444-8444-444444444444',
+            children: [],
+          },
+        ],
+      },
+    ]);
+
+    await request(httpServer)
+      .get('/locations/tree')
+      .expect(HttpStatus.OK)
+      .expect(({ body }) => {
+        expect(body).toMatchObject([
+          {
+            building: 'A',
+            name: 'Floor 1',
+            number: 'A-01',
+            children: [
+              {
+                building: 'A',
+                name: 'Meeting Room 1',
+                number: 'A-01-01',
+                department: 'EFM',
+                capacity: 10,
+                openTime: 'Mon to Fri (9AM to 6PM)',
+              },
+            ],
+          },
+          {
+            building: 'B',
+            name: 'Floor 5',
+            number: 'B-05',
+            children: [
+              {
+                building: 'B',
+                name: 'Genset Room',
+                number: 'B-05-14',
+                department: 'ASS',
+                capacity: 100,
+                openTime: 'Mon to Sun (9AM to 6PM)',
+              },
+            ],
+          },
+        ]);
+      });
+  });
 });

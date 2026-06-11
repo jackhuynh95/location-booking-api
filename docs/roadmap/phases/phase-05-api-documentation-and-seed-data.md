@@ -10,11 +10,11 @@ Seed data is required, not optional. The source values are the table in `docs/sp
 
 | ID | Task | Output | Done When | Status |
 | --- | --- | --- | --- | --- |
-| 5.1.1 | Convert assignment table to seed data | Seed file | Example locations can be loaded | Planned |
-| 5.1.2 | Add seed command | Package script | Reviewer can seed local DB | Planned |
-| 5.1.3 | Make seed idempotent | Seed script | Running seed more than once does not duplicate locations | Planned |
-| 5.1.4 | Preserve assignment values | Seed fixtures | Building, location name, number, department, capacity, and open time match the assignment table | Planned |
-| 5.1.5 | Verify seeded tree response | Test or HTTP example | `GET /locations/tree` includes the seeded Building A and Building B examples | Planned |
+| 5.1.1 | Convert assignment table to seed data | Seed file | Example locations can be loaded | Done |
+| 5.1.2 | Add seed command | Package script | Reviewer can seed local DB | Done |
+| 5.1.3 | Make seed idempotent | Seed script | Running seed more than once does not duplicate locations | Done |
+| 5.1.4 | Preserve assignment values | Seed fixtures | Building, location name, number, department, capacity, and open time match the assignment table | Done |
+| 5.1.5 | Verify seeded tree response | Test or HTTP example | `GET /locations/tree` includes the seeded Building A and Building B examples | Done |
 | 5.2.1 | Document location endpoints | API docs | Request/response examples exist | Planned |
 | 5.2.2 | Document booking endpoints | API docs | Valid and invalid booking examples exist | Planned |
 | 5.3.1 | Document errors | API docs | Common validation and 404 errors are described | Planned |

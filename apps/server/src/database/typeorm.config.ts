@@ -1,6 +1,11 @@
 import 'reflect-metadata';
+import { resolve } from 'node:path';
+import { config as loadEnv } from 'dotenv';
 import { DataSource } from 'typeorm';
 import { envValidationSchema } from '../config/env.validation';
+
+loadEnv({ path: resolve(process.cwd(), '../../.env') });
+loadEnv({ path: resolve(process.cwd(), '.env'), override: true });
 
 type DatabaseEnv = {
   DB_HOST: string;

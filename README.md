@@ -4,7 +4,7 @@ RESTful API backend for managing hierarchical building locations and room bookin
 
 ## Project Status
 
-This repository is currently in the specification and harness phase. Code generation and framework scaffolding should happen only after the functional requirements, architecture guardrails, and delivery structure are agreed.
+This repository has the NestJS server foundation and location domain in place. Booking validation and optional admin UI remain planned follow-up phases.
 
 ## Assignment Scope
 
@@ -41,12 +41,31 @@ The system manages:
 ```text
 location-booking-api/
 |-- apps/
-|   |-- server/             # Future NestJS REST API
+|   |-- server/             # NestJS REST API
 |   `-- admin/              # Future admin client, if approved
 |-- docs/                   # Specs, architecture, operations, guardrails
 |-- docker-compose.yml      # Local infrastructure harness
 `-- AGENTS.md               # Agent instructions and project guardrails
 ```
+
+## Local Server Setup
+
+From repository root:
+
+```bash
+docker compose up -d postgres
+```
+
+From `apps/server`:
+
+```bash
+npm install
+npm run migration:run
+npm run seed:locations
+npm run start:dev
+```
+
+The seed command loads the original assignment sample locations and is safe to rerun. Seeded rows appear through `GET /locations` and `GET /locations/tree`.
 
 ## Delivery Intent
 
