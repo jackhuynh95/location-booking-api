@@ -10,6 +10,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Booking } from '../bookings/booking.entity';
 
 @Entity({ name: 'locations' })
 @Check('"capacity" IS NULL OR "capacity" > 0')
@@ -52,6 +53,9 @@ export class Location {
 
   @OneToMany(() => Location, (location) => location.parent)
   children!: Location[];
+
+  @OneToMany(() => Booking, (booking) => booking.location)
+  bookings!: Booking[];
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;

@@ -24,6 +24,7 @@ const makeLocation = (seed: LocationSeed): Location => ({
   parentId: null,
   parent: null,
   children: [],
+  bookings: [],
   createdAt: date,
   updatedAt: date,
   ...seed,

@@ -14,20 +14,20 @@ If `react-best-practices` is unavailable, explicitly say so in the implementatio
 
 ## Tasks
 
-| ID | Task | Output | Done When | Status |
-| --- | --- | --- | --- | --- |
-| 7.1.1 | Confirm admin scope | User decision | User approves or rejects frontend work | Blocked |
-| 7.2.1 | Choose frontend stack | Decision doc | Framework, package manager, and UI library are selected | Planned |
-| 7.2.2 | Scaffold admin app | `apps/admin` | App boots locally | Planned |
-| 7.3.1 | Build location tree view | Admin UI | Reviewer can inspect hierarchy | Planned |
-| 7.3.2 | Load initial assignment seed data through API | Admin UI | First admin view shows seeded assignment locations when the database has been seeded | Planned |
-| 7.3.3 | Build location form | Admin UI | Reviewer can create/update locations | Planned |
-| 7.4.1 | Build booking form | Admin UI | Reviewer can submit valid and invalid bookings | Planned |
-| 7.4.2 | Show validation errors | Admin UI | API errors are visible and readable | Planned |
-| 7.5.1 | Add seeded-data empty state guidance | Admin UI | If no locations exist, admin points reviewer to run the seed command | Planned |
-| 7.5.2 | Verify assignment rows in admin | Test or manual checklist | Assignment sample locations are visible in tree/list views | Planned |
-| 7.6.1 | Document admin usage | Docs | Admin setup, seed, dev run, and production build instructions exist | Planned |
-| 7.6.2 | Confirm static output path | Admin build config | Phase 8 can copy or mount admin static assets into NestJS | Planned |
+| ID    | Task                                          | Output                   | Done When                                                                            | Status |
+| ----- | --------------------------------------------- | ------------------------ | ------------------------------------------------------------------------------------ | ------ |
+| 7.1.1 | Confirm admin scope                           | User decision            | User approves or rejects frontend work                                               | Done   |
+| 7.2.1 | Choose frontend stack                         | Decision doc             | Framework, package manager, and UI library are selected                              | Done   |
+| 7.2.2 | Scaffold admin app                            | `apps/admin`             | App boots locally                                                                    | Done   |
+| 7.3.1 | Build location tree view                      | Admin UI                 | Reviewer can inspect hierarchy                                                       | Done   |
+| 7.3.2 | Load initial assignment seed data through API | Admin UI                 | First admin view shows seeded assignment locations when the database has been seeded | Done   |
+| 7.3.3 | Build location form                           | Admin UI                 | Reviewer can create/update locations                                                 | Done   |
+| 7.4.1 | Build booking form                            | Admin UI                 | Reviewer can submit valid and invalid bookings                                       | Done   |
+| 7.4.2 | Show validation errors                        | Admin UI                 | API errors are visible and readable                                                  | Done   |
+| 7.5.1 | Add seeded-data empty state guidance          | Admin UI                 | If no locations exist, admin points reviewer to run the seed command                 | Done   |
+| 7.5.2 | Verify assignment rows in admin               | Test or manual checklist | Assignment sample locations are visible in tree/list views                           | Done   |
+| 7.6.1 | Document admin usage                          | Docs                     | Admin setup, seed, dev run, and production build instructions exist                  | Done   |
+| 7.6.2 | Confirm static output path                    | Admin build config       | Phase 8 can copy or mount admin static assets into NestJS                            | Done   |
 
 ## Guardrail
 

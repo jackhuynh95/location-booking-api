@@ -4,7 +4,7 @@ RESTful API backend for managing hierarchical building locations and room bookin
 
 ## Project Status
 
-This repository has the NestJS server foundation and location domain in place. Booking validation and optional admin UI remain planned follow-up phases.
+This repository has the NestJS server foundation, location domain, booking persistence, booking validation rules, reviewer admin UI, and Docker runtime packaging in place.
 
 ## Assignment Scope
 
@@ -35,6 +35,10 @@ The system manages:
 - [Runtime Packaging](docs/operations/runtime-packaging.md)
 - [Implementation Roadmap](docs/roadmap/IMPLEMENTATION_ROADMAP.md)
 - [Epic Vision](docs/roadmap/EPIC.md)
+- [Locations API](docs/api/locations.md)
+- [Bookings API](docs/api/bookings.md)
+- [Location Database Design](docs/database/location-design.md)
+- [Booking Database Design](docs/database/booking-design.md)
 
 ## Repository Shape
 
@@ -42,13 +46,13 @@ The system manages:
 location-booking-api/
 |-- apps/
 |   |-- server/             # NestJS REST API
-|   `-- admin/              # Future admin client, if approved
+|   `-- admin/              # Vite React reviewer admin
 |-- docs/                   # Specs, architecture, operations, guardrails
 |-- docker-compose.yml      # Local infrastructure harness
 `-- AGENTS.md               # Agent instructions and project guardrails
 ```
 
-## Local Server Setup
+## Local Setup
 
 From repository root:
 
@@ -66,6 +70,57 @@ npm run start:dev
 ```
 
 The seed command loads the original assignment sample locations and is safe to rerun. Seeded rows appear through `GET /locations` and `GET /locations/tree`.
+
+Booking examples are documented in [Bookings API](docs/api/bookings.md). Use `GET /locations` after seeding to copy a room `id`, then create bookings against that `locationId`.
+
+## Admin UI
+
+From `apps/admin`:
+
+```bash
+npm install
+VITE_API_BASE_URL=http://localhost:3000 npm run dev
+```
+
+Open `http://localhost:5173/admin/`. The admin reads `GET /locations/tree`, shows seeded assignment rows, includes no-seed guidance, supports location create/update, and includes a booking validation form.
+
+Production admin assets are built with:
+
+```bash
+npm run build
+```
+
+## Verification
+
+From `apps/server`:
+
+```bash
+npm run lint
+npm test -- --runInBand
+npm run test:e2e -- --runInBand
+npm run build
+```
+
+From `apps/admin`:
+
+```bash
+npm run build
+```
+
+## Docker Runtime
+
+The final runtime image serves both REST API routes and the built admin UI at `/admin`.
+
+```bash
+docker compose up --build server
+```
+
+Then open:
+
+- API health: `http://localhost:3000/health`
+- Admin: `http://localhost:3000/admin`
+
+PostgreSQL remains a separate Compose service. The server image reads `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD`, `DB_DATABASE`, `DB_SSL`, `DB_SYNCHRONIZE`, and `DB_LOGGING` from environment variables.
 
 ## Delivery Intent
 

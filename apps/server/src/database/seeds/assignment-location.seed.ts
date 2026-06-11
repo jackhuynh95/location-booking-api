@@ -149,12 +149,16 @@ export const seedAssignmentLocations = async (
   let updated = 0;
 
   const byNumber = new Map<string, Location>();
-  const orderedSeeds = [...assignmentLocationSeeds].sort(compareByHierarchyDepth);
+  const orderedSeeds = [...assignmentLocationSeeds].sort(
+    compareByHierarchyDepth,
+  );
 
   for (const seed of orderedSeeds) {
     const parentNumber = inferParentLocationNumber(seed.number);
     const parent = parentNumber ? byNumber.get(parentNumber) : null;
-    const existing = await repository.findOne({ where: { number: seed.number } });
+    const existing = await repository.findOne({
+      where: { number: seed.number },
+    });
     const location = existing ?? repository.create();
 
     location.building = seed.building;

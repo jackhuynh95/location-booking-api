@@ -48,18 +48,18 @@ apps/server/src/
 
 Environment variables are documented in root `.env.example` because local Docker and future server setup share the same PostgreSQL contract:
 
-| Name | Purpose | Local default |
-| --- | --- | --- |
-| `NODE_ENV` | Runtime mode | `development` |
-| `PORT` | HTTP server port | `3000` |
-| `DB_HOST` | PostgreSQL host | `localhost` |
-| `DB_PORT` | PostgreSQL port | `5432` |
-| `DB_USERNAME` | PostgreSQL username | `location_booking` |
-| `DB_PASSWORD` | PostgreSQL password | `location_booking` |
-| `DB_DATABASE` | PostgreSQL database | `location_booking` |
-| `DB_SSL` | PostgreSQL SSL toggle | `false` |
-| `DB_SYNCHRONIZE` | TypeORM schema sync toggle | `false` |
-| `DB_LOGGING` | TypeORM SQL logging toggle | `false` |
+| Name             | Purpose                    | Local default      |
+| ---------------- | -------------------------- | ------------------ |
+| `NODE_ENV`       | Runtime mode               | `development`      |
+| `PORT`           | HTTP server port           | `3000`             |
+| `DB_HOST`        | PostgreSQL host            | `localhost`        |
+| `DB_PORT`        | PostgreSQL port            | `5432`             |
+| `DB_USERNAME`    | PostgreSQL username        | `location_booking` |
+| `DB_PASSWORD`    | PostgreSQL password        | `location_booking` |
+| `DB_DATABASE`    | PostgreSQL database        | `location_booking` |
+| `DB_SSL`         | PostgreSQL SSL toggle      | `false`            |
+| `DB_SYNCHRONIZE` | TypeORM schema sync toggle | `false`            |
+| `DB_LOGGING`     | TypeORM SQL logging toggle | `false`            |
 
 ## Alternatives Considered
 

@@ -68,13 +68,11 @@ The system must reject invalid bookings when:
 - The requested time is outside the room open time.
 - The target location is not bookable.
 
-### Open Questions
+### Resolved Implementation Policies
 
-- Whether bookings can overlap for the same room.
-- Whether non-room locations can ever be booked.
-- Whether department is attached to a user, request payload, or both.
-- Exact response shape and pagination requirements.
-- Whether delete should be soft delete or hard delete.
-- Required authentication or authorization scope.
-
-These should be resolved before code generation.
+- Confirmed bookings cannot overlap for the same room.
+- Non-bookable locations reject booking requests.
+- Department is supplied in the booking request payload and must match the location department.
+- Error responses use the global `{ statusCode, error, message, timestamp, path }` shape.
+- Location deletion is leaf-only hard delete.
+- Authentication and authorization are out of scope for this assignment pass.

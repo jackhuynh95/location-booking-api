@@ -2,15 +2,16 @@
 
 ## Purpose
 
-`docker-compose.yml` currently starts local PostgreSQL only.
+`docker-compose.yml` starts local PostgreSQL and can build/run the packaged NestJS runtime.
 
 This mirrors the reference-project pattern of using Docker Compose as a local development harness, but keeps the scope aligned with the assignment.
 
 ## Services
 
-| Service | Purpose | Port |
-| --- | --- | --- |
-| `postgres` | Local PostgreSQL database | `5432` |
+| Service    | Purpose                                   | Port   |
+| ---------- | ----------------------------------------- | ------ |
+| `server`   | NestJS API plus built admin static assets | `3000` |
+| `postgres` | Local PostgreSQL database                 | `5432` |
 
 ## Credentials
 
@@ -26,18 +27,19 @@ Do not reuse these values for production.
 
 ```bash
 docker compose up -d postgres
+docker compose up --build server
 docker compose ps
 docker compose down
 ```
 
 Run commands through `rtk` when using the Codex shell.
 
-## Future Expansion
+## Runtime Notes
 
-Add app containers only after the app scaffolds exist:
+- `server` depends on healthy `postgres`.
+- `server` uses `DB_HOST=postgres` and other local-only database defaults.
+- `DB_SYNCHRONIZE=true` is enabled for this local packaged review path so the container can create schema automatically.
+- `GET /health` powers the server healthcheck.
+- Admin is served at `/admin`.
 
-- `server` from `apps/server`.
-- The admin app should not need a separate production container if approved; build `apps/admin` into static assets and serve them from NestJS.
-- Test profiles for repeatable validation.
-
-See [Runtime Packaging](runtime-packaging.md) for the eventual build/runtime shape.
+See [Runtime Packaging](runtime-packaging.md) for image build details.

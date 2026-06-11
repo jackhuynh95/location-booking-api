@@ -6,7 +6,9 @@ const run = async (): Promise<void> => {
   await dataSource.initialize();
 
   try {
-    const result = await seedAssignmentLocations(dataSource.getRepository(Location));
+    const result = await seedAssignmentLocations(
+      dataSource.getRepository(Location),
+    );
     console.log(
       `Seeded assignment locations: ${result.inserted} inserted, ${result.updated} updated, ${result.total} total.`,
     );

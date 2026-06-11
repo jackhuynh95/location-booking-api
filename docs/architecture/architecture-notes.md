@@ -1,10 +1,10 @@
 # Architecture Notes
 
-## Initial Direction
+## Current Direction
 
 Use a NestJS modular backend with PostgreSQL persistence through TypeORM.
 
-Suggested first modules after approval:
+Implemented modules:
 
 - `locations`
 - `bookings`
@@ -30,6 +30,13 @@ Booking belongs to a location. Booking creation should pass through a service-le
 
 Validation should be expressed as domain/service logic, not as controller-only checks.
 
+Current booking flow:
+
+1. DTO validation checks UUID, department, attendee count, and ISO timestamps.
+2. `BookingsService` loads the target location.
+3. Service validates bookable location, department match, capacity, open time, and same-room overlap.
+4. A valid request persists as a `confirmed` booking.
+
 ## API Surface Draft
 
 Location endpoints:
@@ -46,8 +53,8 @@ Booking endpoints:
 - `POST /bookings`
 - `GET /bookings`
 - `GET /bookings/:id`
-- `PATCH /bookings/:id`
-- `DELETE /bookings/:id`
+
+Cancel/update endpoints are intentionally deferred; see [booking policy decision](../decisions/0003-booking-policy.md).
 
 ## Documentation Targets
 

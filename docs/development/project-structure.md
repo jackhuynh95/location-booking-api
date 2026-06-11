@@ -56,9 +56,9 @@ Do not add a root workspace yet. Revisit workspace tooling only if shared packag
 
 ### `apps/admin`
 
-The admin app is optional. It exists as a planned app root so future UI work has a clear home without disturbing the backend.
+The admin app is a Vite React TypeScript reviewer UI. It reads the backend APIs directly, shows the seeded assignment hierarchy, includes no-seed guidance, and builds to static assets under `apps/admin/dist`.
 
-Do not add frontend dependencies until the admin scope is confirmed.
+Production packaging copies `apps/admin/dist` into the NestJS runtime image at `public/admin`, served from `/admin`.
 
 ## Docs Boundaries
 
@@ -67,4 +67,4 @@ Do not add frontend dependencies until the admin scope is confirmed.
 - `docs/development`: local workflow and project structure.
 - `docs/operations`: Docker, deployment, and runtime notes.
 - `docs/guardrails`: development constraints for humans and agents.
-- `docs/decisions`: future architecture decision records.
+- `docs/decisions`: architecture decision records.

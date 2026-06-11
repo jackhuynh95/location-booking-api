@@ -2,17 +2,16 @@
 
 ## Current Phase
 
-The local harness now includes the Phase 2 backend baseline and local PostgreSQL infrastructure.
+The local harness includes PostgreSQL infrastructure, the NestJS API, the Vite admin UI, and Docker runtime packaging.
 
 Current local services:
 
 - PostgreSQL through `docker-compose.yml`.
 - NestJS API in `apps/server`.
+- Vite React admin in `apps/admin`.
 
 Future local services may include:
 
-- `apps/server` container.
-- `apps/admin` container.
 - Test runner profiles.
 - Docker Swarm deployment descriptors.
 
@@ -56,6 +55,6 @@ Reserved local ports:
 
 - `5432`: PostgreSQL.
 - `3000`: server API.
-- `5173`: future admin dev server candidate.
+- `5173`: admin dev server.
 
-These are placeholders, not implemented services.
+The production Docker runtime serves the API and built admin assets from the NestJS server on port `3000`.

@@ -6,17 +6,17 @@ Prepare the repo shape and local infrastructure needed before generating server 
 
 ## Tasks
 
-| ID | Task | Output | Done When | Status |
-| --- | --- | --- | --- | --- |
-| 1.1.1 | Create `apps` root | `apps/README.md` | App boundary is documented | Done |
-| 1.1.2 | Create server placeholder | `apps/server/README.md` | Backend responsibilities are documented | Done |
-| 1.1.3 | Create admin placeholder | `apps/admin/README.md` | Optional admin scope is documented | Done |
-| 1.2.1 | Add PostgreSQL service | `docker-compose.yml` | Compose config validates | Done |
-| 1.2.2 | Document compose usage | `docs/operations/docker-compose.md` | Local DB commands and credentials are documented | Done |
-| 1.3.1 | Choose scaffold command | `docs/decisions/0001-phase-1-implementation-readiness.md` | Exact NestJS scaffold approach is recorded | Done |
-| 1.3.2 | Choose source layout | `docs/decisions/0001-phase-1-implementation-readiness.md` | `src` layout is agreed before generation | Done |
-| 1.4.1 | Define env variables | `.env.example` | Database and server env names are documented | Done |
-| 1.5.1 | Choose package manager | `docs/decisions/0001-phase-1-implementation-readiness.md` | npm, pnpm, or yarn choice is recorded | Done |
+| ID    | Task                      | Output                                                    | Done When                                        | Status |
+| ----- | ------------------------- | --------------------------------------------------------- | ------------------------------------------------ | ------ |
+| 1.1.1 | Create `apps` root        | `apps/README.md`                                          | App boundary is documented                       | Done   |
+| 1.1.2 | Create server placeholder | `apps/server/README.md`                                   | Backend responsibilities are documented          | Done   |
+| 1.1.3 | Create admin placeholder  | `apps/admin/README.md`                                    | Optional admin scope is documented               | Done   |
+| 1.2.1 | Add PostgreSQL service    | `docker-compose.yml`                                      | Compose config validates                         | Done   |
+| 1.2.2 | Document compose usage    | `docs/operations/docker-compose.md`                       | Local DB commands and credentials are documented | Done   |
+| 1.3.1 | Choose scaffold command   | `docs/decisions/0001-phase-1-implementation-readiness.md` | Exact NestJS scaffold approach is recorded       | Done   |
+| 1.3.2 | Choose source layout      | `docs/decisions/0001-phase-1-implementation-readiness.md` | `src` layout is agreed before generation         | Done   |
+| 1.4.1 | Define env variables      | `.env.example`                                            | Database and server env names are documented     | Done   |
+| 1.5.1 | Choose package manager    | `docs/decisions/0001-phase-1-implementation-readiness.md` | npm, pnpm, or yarn choice is recorded            | Done   |
 
 ## Decisions Recorded
 
