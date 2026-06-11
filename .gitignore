@@ -186,7 +186,12 @@ kamal-pre-deploy-envs.sh
 
 # Codex
 .agents/
+!.agents/
+.agents/*
+!.agents/skills/
+.agents/skills/*
 !.agents/skills/nestjs-expert/
+!.agents/skills/nestjs-expert/**
 .codex/
 
 .auto-claude/
