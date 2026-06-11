@@ -29,6 +29,21 @@ The system manages:
 - [Functional Specification](docs/specs/functional-spec.md)
 - [Architecture Notes](docs/architecture/architecture-notes.md)
 - [Development Guardrails](docs/guardrails/development-guardrails.md)
+- [Project Structure](docs/development/project-structure.md)
+- [Local Development Harness](docs/development/local-development-harness.md)
+- [Docker Compose Notes](docs/operations/docker-compose.md)
+
+## Repository Shape
+
+```text
+location-booking-api/
+├── apps/
+│   ├── server/             # Future NestJS REST API
+│   └── admin/              # Future admin client, if approved
+├── docs/                   # Specs, architecture, operations, guardrails
+├── docker-compose.yml      # Local infrastructure harness
+└── AGENTS.md               # Agent instructions and project guardrails
+```
 
 ## Delivery Intent
 

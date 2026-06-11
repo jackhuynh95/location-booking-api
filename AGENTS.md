@@ -18,6 +18,18 @@ Use these documents before implementation decisions:
 - `docs/specs/functional-spec.md`
 - `docs/architecture/architecture-notes.md`
 - `docs/guardrails/development-guardrails.md`
+- `docs/development/project-structure.md`
+- `docs/development/local-development-harness.md`
+- `docs/operations/docker-compose.md`
+
+## Repository Layout
+
+This repository follows a small monorepo shape inspired by the user's larger Medusa harness:
+
+- `apps/server`: future NestJS API service.
+- `apps/admin`: future admin UI or API testing console if approved.
+- `docs`: specs, architecture, operations, decisions, and guardrails.
+- `docker-compose.yml`: local infrastructure only until app containers are approved.
 
 ## Required Stack
 
@@ -35,6 +47,9 @@ Use these documents before implementation decisions:
 - Do not hard-code sample data into business logic.
 - Document assumptions when assignment details are incomplete.
 - Keep generated structure minimal and explainable.
+- Treat `apps/server` and `apps/admin` as independent app roots.
+- Do not copy Medusa-specific architecture, services, credentials, or scripts into this project.
+- Keep `docker-compose.yml` focused on local development infrastructure until service Dockerfiles exist.
 
 ## Shell Rule
 
