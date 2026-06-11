@@ -2,11 +2,11 @@
 
 ## Target Shape
 
-The eventual deployable artifact should be one application container:
+The eventual deployable artifact should be one application container plus an external PostgreSQL service:
 
 - NestJS serves the REST API.
 - React admin builds to static files.
-- NestJS serves the admin static files.
+- NestJS serves the built admin static files from the same server runtime.
 - PostgreSQL runs as a separate service.
 
 This keeps the assignment easy to run and review while still supporting both backend and admin UI work.
@@ -55,6 +55,8 @@ The production image should:
 - Start with a single server command.
 - Read database connection values from environment variables.
 - Not bake secrets into the image.
+
+Do not add a separate production admin container unless the user explicitly changes the runtime direction.
 
 ## Docker Compose Role
 

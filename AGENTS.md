@@ -44,6 +44,7 @@ This repository follows a small monorepo shape inspired by the user's larger Med
 
 ## Implementation Guardrails
 
+- Treat backend and admin skill lookup as a required implementation preflight.
 - Before implementing or modifying backend code in `apps/server`, invoke and mention the `nestjs-expert` skill if it is available in the active agent environment.
 - If `nestjs-expert` is not installed or not discoverable, state that clearly, then continue with the documented NestJS/TypeORM guardrails.
 - Before implementing or modifying admin UI code in `apps/admin`, invoke and mention the `react-best-practices` skill if it is available in the active agent environment.

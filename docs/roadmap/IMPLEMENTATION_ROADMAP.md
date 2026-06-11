@@ -10,6 +10,22 @@ Status values:
 - `Done`: implemented and verified.
 - `Blocked`: waiting on a decision.
 
+## Epic Traceability
+
+The roadmap decomposes [EPIC.md](EPIC.md) into phases and task files. Each phase table below lists the larger work packages; the linked phase files break those packages into the smallest tracked tasks.
+
+| Epic outcome | Roadmap coverage | Proof target |
+| --- | --- | --- |
+| Assignment scope is captured before code generation | Phase 0 | Specs, architecture notes, guardrails, and roadmap exist before app code |
+| Local repo and database harness exist | Phase 1 | App roots and PostgreSQL compose harness are documented and ready |
+| NestJS REST API foundation exists | Phase 2 | Server boots with health, config, database, validation, errors, and logging |
+| Hierarchical locations are managed | Phase 3 | Location CRUD and tree endpoint support the assignment hierarchy |
+| Bookings enforce assignment rules | Phase 4 | Booking endpoints reject department, capacity, open-time, and non-bookable violations |
+| Reviewer can seed and exercise assignment data | Phase 5 | Original assignment rows load through an idempotent seed command and appear in API examples |
+| Deliverable is verified for submission | Phase 6 | Tests, lint/format, setup docs, and repository readiness checks pass |
+| Optional admin shows seeded assignment data | Phase 7 | Admin tree/list loads the seeded assignment locations through normal API endpoints |
+| Final runtime is one NestJS container plus PostgreSQL | Phase 8 | NestJS serves API and built React admin static assets from one Docker image |
+
 ## Phase 0 - Specification Foundation
 
 Everything else depends on these. Do first.

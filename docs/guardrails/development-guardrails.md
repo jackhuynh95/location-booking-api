@@ -28,6 +28,7 @@ Current blocked work without explicit approval:
 
 When implementation begins:
 
+- Treat skill preflight as required before touching implementation code.
 - Invoke and mention `nestjs-expert` before backend work in `apps/server`, if that skill is available.
 - If `nestjs-expert` is unavailable, record that in the work summary and continue using the local NestJS guardrails.
 - Invoke and mention `react-best-practices` before admin UI work in `apps/admin`, if that skill is available.

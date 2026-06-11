@@ -4,6 +4,8 @@
 
 Add a small admin UI only if it improves the assignment submission and the user approves the scope.
 
+If approved, the admin app must make the assignment seed data visible through the API as part of the first reviewer experience.
+
 ## Required Skill
 
 Before starting this phase, invoke and mention `react-best-practices` if it is available in the active agent environment.
@@ -35,6 +37,7 @@ This phase should remain blocked unless the backend assignment is already health
 
 - Admin app demonstrates the backend clearly.
 - Admin displays original assignment seed data after initial setup.
+- Admin reads seeded locations from backend endpoints instead of bundling its own copy.
 - Admin has a helpful path when seed data has not been loaded yet.
 - Admin docs exist.
 - Admin can produce static production assets.

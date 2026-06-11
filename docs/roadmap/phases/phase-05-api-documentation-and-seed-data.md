@@ -4,6 +4,8 @@
 
 Make the project easy to review and manually test using the original assignment sample data.
 
+Seed data is required, not optional. The source values are the table in `docs/specs/assignment-brief.md`, and the seed fixture must preserve those values without inventing hidden business data.
+
 ## Tasks
 
 | ID | Task | Output | Done When | Status |
@@ -29,5 +31,6 @@ Make the project easy to review and manually test using the original assignment 
 - Seeded data comes from the original assignment table.
 - Seed command is safe to run during initial setup.
 - Seeded locations are available to the admin app through normal API endpoints.
+- Seeded assignment locations are visible in any approved admin tree/list view without manual data entry.
 - Reviewer can exercise endpoints from docs.
 - Database and system design docs exist.
