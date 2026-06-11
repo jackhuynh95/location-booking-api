@@ -12,6 +12,8 @@ Build a RESTful API backend for:
 
 Users must be able to create, read, update, and delete location nodes.
 
+Initial assignment sample locations must be available as seed data so reviewers can inspect the expected hierarchy without manually entering all rows.
+
 ### Location Attributes
 
 Expected core fields:

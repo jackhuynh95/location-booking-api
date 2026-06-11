@@ -37,5 +37,7 @@ Run commands through `rtk` when using the Codex shell.
 Add app containers only after the app scaffolds exist:
 
 - `server` from `apps/server`.
-- `admin` from `apps/admin`, if approved.
+- The admin app should not need a separate production container if approved; build `apps/admin` into static assets and serve them from NestJS.
 - Test profiles for repeatable validation.
+
+See [Runtime Packaging](runtime-packaging.md) for the eventual build/runtime shape.

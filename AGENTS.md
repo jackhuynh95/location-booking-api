@@ -21,6 +21,7 @@ Use these documents before implementation decisions:
 - `docs/development/project-structure.md`
 - `docs/development/local-development-harness.md`
 - `docs/operations/docker-compose.md`
+- `docs/operations/runtime-packaging.md`
 - `docs/roadmap/IMPLEMENTATION_ROADMAP.md`
 - `docs/roadmap/EPIC.md`
 
@@ -43,6 +44,10 @@ This repository follows a small monorepo shape inspired by the user's larger Med
 
 ## Implementation Guardrails
 
+- Before implementing or modifying backend code in `apps/server`, invoke and mention the `nestjs-expert` skill if it is available in the active agent environment.
+- If `nestjs-expert` is not installed or not discoverable, state that clearly, then continue with the documented NestJS/TypeORM guardrails.
+- Before implementing or modifying admin UI code in `apps/admin`, invoke and mention the `react-best-practices` skill if it is available in the active agent environment.
+- If `react-best-practices` is not installed or not discoverable, state that clearly, then continue with the documented frontend guardrails.
 - Prefer clear module boundaries: locations, bookings, shared database configuration, logging, and exception handling.
 - Keep domain rules testable outside controllers.
 - Preserve the location hierarchy as a first-class model.
@@ -50,6 +55,8 @@ This repository follows a small monorepo shape inspired by the user's larger Med
 - Document assumptions when assignment details are incomplete.
 - Keep generated structure minimal and explainable.
 - Treat `apps/server` and `apps/admin` as independent app roots.
+- Eventual delivery should package both apps by building `apps/admin` to static assets and serving those assets from the NestJS server.
+- The production runtime should be a Docker container for the NestJS server, with static admin assets included in the server image and PostgreSQL provided as an external service.
 - Do not copy Medusa-specific architecture, services, credentials, or scripts into this project.
 - Keep `docker-compose.yml` focused on local development infrastructure until service Dockerfiles exist.
 - Follow the roadmap phases in `docs/roadmap/IMPLEMENTATION_ROADMAP.md`; do not skip into later phases unless the user explicitly asks.

@@ -4,6 +4,12 @@
 
 Generate the backend foundation and establish cross-cutting behavior before adding domain features.
 
+## Required Skill
+
+Before starting this phase, invoke and mention `nestjs-expert` if it is available in the active agent environment.
+
+If `nestjs-expert` is unavailable, explicitly say so in the implementation notes and proceed using the project guardrails in `AGENTS.md` and `docs/guardrails/development-guardrails.md`.
+
 ## Tasks
 
 | ID | Task | Output | Done When | Status |

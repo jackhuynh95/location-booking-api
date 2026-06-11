@@ -58,7 +58,9 @@ As an assignment reviewer, I can:
 - Clone the repository.
 - Read the documentation.
 - Start PostgreSQL locally.
+- Load the assignment seed data.
 - Run the server.
+- Open the admin app, if enabled, and see the seeded assignment locations immediately.
 - Exercise the API.
 - Understand the database design and system design.
 - See tests proving the core rules.
@@ -80,6 +82,8 @@ The epic is done when:
 
 - The server exposes documented REST endpoints for locations and bookings.
 - Location data is persisted in PostgreSQL.
+- The assignment sample data can be seeded during initial setup.
+- The admin app, if enabled, displays seeded assignment locations on first review.
 - The location hierarchy can be retrieved as a tree.
 - Booking creation enforces department, capacity, open-time, and bookable-location checks.
 - Important failure modes return consistent HTTP errors.

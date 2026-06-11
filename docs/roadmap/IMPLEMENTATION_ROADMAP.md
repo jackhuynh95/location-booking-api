@@ -114,7 +114,7 @@ Make the API easy to review.
 | 5.5 | local | Database design documentation | 3.1, 4.1 | Planned |
 | 5.6 | local | System design documentation | 2.1, 3.1, 4.1 | Planned |
 
-Milestone: A reviewer can run and manually exercise the project without reading source code first.
+Milestone: A reviewer can seed the assignment data, run the API, and manually exercise the project without reading source code first.
 
 Detailed tasks: [Phase 5](phases/phase-05-api-documentation-and-seed-data.md)
 
@@ -145,8 +145,27 @@ Only do this if the user explicitly approves frontend scope.
 | 7.2 | local | Admin framework choice | 7.1 | Planned |
 | 7.3 | local | Location tree UI | 7.2, 3.6 | Planned |
 | 7.4 | local | Booking validation demo UI | 7.2, 4.7 | Planned |
-| 7.5 | local | Admin app docs | 7.3, 7.4 | Planned |
+| 7.5 | local | Assignment seed data visible in admin | 5.1, 7.3 | Planned |
+| 7.6 | local | Admin app docs | 7.3, 7.4, 7.5 | Planned |
 
-Milestone: Optional visual reviewer experience exists, without expanding the backend assignment unnecessarily.
+Milestone: Optional visual reviewer experience exists, and it opens against the original assignment seed data.
 
 Detailed tasks: [Phase 7](phases/phase-07-optional-admin-app.md)
+
+## Phase 8 - Static Admin Hosting And Docker Runtime
+
+Wrap the approved backend/admin deliverable into the final runtime shape.
+
+| # | Issue | Title | Depends on | Status |
+| --- | --- | --- | --- | --- |
+| 8.1 | local | Static hosting strategy | 2.1, 7.2 | Planned |
+| 8.2 | local | Admin production build output | 7.3, 7.4 | Planned |
+| 8.3 | local | NestJS static asset serving | 8.1, 8.2 | Planned |
+| 8.4 | local | Server Dockerfile | 2.1, 8.3 | Planned |
+| 8.5 | local | Compose server runtime | 1.2, 8.4 | Planned |
+| 8.6 | local | Runtime documentation | 8.3, 8.5 | Planned |
+| 8.7 | local | Container smoke test | 8.5 | Planned |
+
+Milestone: One Dockerized NestJS runtime serves the API and, if approved, the built admin UI.
+
+Detailed tasks: [Phase 8](phases/phase-08-static-admin-hosting-and-docker-runtime.md)

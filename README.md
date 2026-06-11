@@ -32,6 +32,7 @@ The system manages:
 - [Project Structure](docs/development/project-structure.md)
 - [Local Development Harness](docs/development/local-development-harness.md)
 - [Docker Compose Notes](docs/operations/docker-compose.md)
+- [Runtime Packaging](docs/operations/runtime-packaging.md)
 - [Implementation Roadmap](docs/roadmap/IMPLEMENTATION_ROADMAP.md)
 - [Epic Vision](docs/roadmap/EPIC.md)
 
