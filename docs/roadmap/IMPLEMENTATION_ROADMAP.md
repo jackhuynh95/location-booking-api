@@ -50,11 +50,11 @@ Prepare the app roots and local runtime foundation.
 | --- | --- | --- | --- | --- |
 | 1.1 | local | Monorepo app roots | 0.5 | Done |
 | 1.2 | local | PostgreSQL compose harness | 1.1 | Done |
-| 1.3 | local | Server scaffold plan | 1.1 | Planned |
-| 1.4 | local | Environment variable contract | 1.2 | Planned |
-| 1.5 | local | Package manager decision | 1.3 | Planned |
+| 1.3 | local | Server scaffold plan | 1.1 | Done |
+| 1.4 | local | Environment variable contract | 1.2 | Done |
+| 1.5 | local | Package manager decision | 1.3 | Done |
 
-Milestone: A developer can understand where app code belongs and can start local database infrastructure.
+Milestone: A developer can understand where app code belongs, start local database infrastructure, and generate `apps/server` in Phase 2 without guessing.
 
 Detailed tasks: [Phase 1](phases/phase-01-repository-and-local-infrastructure.md)
 
@@ -64,13 +64,13 @@ Create the backend skeleton without domain complexity.
 
 | # | Issue | Title | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| 2.1 | local | NestJS app scaffold in `apps/server` | 1.3, 1.5 | Planned |
-| 2.2 | local | Health endpoint | 2.1 | Planned |
-| 2.3 | local | Config module and validation | 2.1, 1.4 | Planned |
-| 2.4 | local | TypeORM PostgreSQL connection | 2.3, 1.2 | Planned |
-| 2.5 | local | Global validation pipe | 2.1 | Planned |
-| 2.6 | local | Global exception response shape | 2.1 | Planned |
-| 2.7 | local | Structured logging baseline | 2.1 | Planned |
+| 2.1 | local | NestJS app scaffold in `apps/server` | 1.3, 1.5 | Done |
+| 2.2 | local | Health endpoint | 2.1 | Done |
+| 2.3 | local | Config module and validation | 2.1, 1.4 | Done |
+| 2.4 | local | TypeORM PostgreSQL connection | 2.3, 1.2 | Done |
+| 2.5 | local | Global validation pipe | 2.1 | Done |
+| 2.6 | local | Global exception response shape | 2.1 | Done |
+| 2.7 | local | Structured logging baseline | 2.1 | Done |
 
 Milestone: The API boots, connects to PostgreSQL, reports health, validates DTOs, logs requests, and returns consistent errors.
 
@@ -82,15 +82,15 @@ Implement the location tree as the core domain model.
 
 | # | Issue | Title | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| 3.1 | local | Location database design | 2.4 | Planned |
-| 3.2 | local | Location entity and migration | 3.1 | Planned |
-| 3.3 | local | Create location endpoint | 3.2 | Planned |
-| 3.4 | local | Read location detail endpoint | 3.2 | Planned |
-| 3.5 | local | List locations endpoint | 3.2 | Planned |
-| 3.6 | local | Location tree endpoint | 3.2 | Planned |
-| 3.7 | local | Update location endpoint | 3.2 | Planned |
-| 3.8 | local | Delete location policy and endpoint | 3.1, 3.2 | Planned |
-| 3.9 | local | Location rule tests | 3.3, 3.6, 3.8 | Planned |
+| 3.1 | local | Location database design | 2.4 | Done |
+| 3.2 | local | Location entity and migration | 3.1 | Done |
+| 3.3 | local | Create location endpoint | 3.2 | Done |
+| 3.4 | local | Read location detail endpoint | 3.2 | Done |
+| 3.5 | local | List locations endpoint | 3.2 | Done |
+| 3.6 | local | Location tree endpoint | 3.2 | Done |
+| 3.7 | local | Update location endpoint | 3.2 | Done |
+| 3.8 | local | Delete location policy and endpoint | 3.1, 3.2 | Done |
+| 3.9 | local | Location rule tests | 3.3, 3.6, 3.8 | Done |
 
 Milestone: The API can manage hierarchical locations and return a tree.
 

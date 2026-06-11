@@ -14,3 +14,7 @@ Each decision should include:
 - Decision.
 - Alternatives considered.
 - Consequences.
+
+## Records
+
+- [0001 - Phase 1 Implementation Readiness](0001-phase-1-implementation-readiness.md)

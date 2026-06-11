@@ -26,12 +26,33 @@ location-booking-api/
 
 The server app will own the API, domain rules, database entities, migrations, logging, and exception handling.
 
-Expected future modules:
+Phase 2 source layout after NestJS scaffold cleanup:
 
-- `locations`
-- `bookings`
-- `database`
-- `common`
+```text
+apps/server/src/
+|-- main.ts
+|-- app.module.ts
+|-- common/
+|   |-- filters/
+|   |-- logging/
+|   `-- validation/
+|-- config/
+|-- database/
+|   |-- migrations/
+|   `-- typeorm.config.ts
+|-- health/
+```
+
+The app was generated in Phase 2 with an app-local npm project:
+
+```bash
+mv apps/server/README.md apps/server-readme.pre-scaffold.md
+rmdir apps/server
+npx @nestjs/cli new server --directory apps/server --package-manager npm --skip-git --strict
+mv apps/server-readme.pre-scaffold.md apps/server/README.project.md
+```
+
+Do not add a root workspace yet. Revisit workspace tooling only if shared packages or approved admin implementation need it.
 
 ### `apps/admin`
 

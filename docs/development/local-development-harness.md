@@ -2,11 +2,12 @@
 
 ## Current Phase
 
-The local harness is intentionally minimal. It provides infrastructure before application code.
+The local harness now includes the Phase 2 backend baseline and local PostgreSQL infrastructure.
 
-Current local service:
+Current local services:
 
 - PostgreSQL through `docker-compose.yml`.
+- NestJS API in `apps/server`.
 
 Future local services may include:
 
@@ -15,7 +16,7 @@ Future local services may include:
 - Test runner profiles.
 - Docker Swarm deployment descriptors.
 
-## Intended Flow After Implementation Starts
+## Backend Flow
 
 Expected backend flow:
 
@@ -26,14 +27,35 @@ npm install
 npm run start:dev
 ```
 
-The exact package manager and scripts should be decided when the NestJS scaffold is created.
+Package manager: `npm`.
+
+Phase 2 scaffold command used:
+
+```bash
+mv apps/server/README.md apps/server-readme.pre-scaffold.md
+rmdir apps/server
+npx @nestjs/cli new server --directory apps/server --package-manager npm --skip-git --strict
+mv apps/server-readme.pre-scaffold.md apps/server/README.project.md
+```
+
+`apps/server` owns its `package.json` and `package-lock.json`. The repository does not use a root workspace yet.
+
+Local server/database settings are documented in root `.env.example`. Copy those values into either repository-root `.env` or `apps/server/.env` for local server boot.
+
+Migration commands run from `apps/server`:
+
+```bash
+npm run migration:generate -- src/database/migrations/<MigrationName>
+npm run migration:run
+npm run migration:revert
+```
 
 ## Ports
 
 Reserved local ports:
 
 - `5432`: PostgreSQL.
-- `3000`: future server API candidate.
+- `3000`: server API.
 - `5173`: future admin dev server candidate.
 
 These are placeholders, not implemented services.

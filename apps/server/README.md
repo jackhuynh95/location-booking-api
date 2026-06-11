@@ -1,14 +1,45 @@
-# Server App
+# Location Booking API Server
 
-Future home of the NestJS backend API.
+NestJS backend for hierarchical building locations and booking validation.
 
-Expected responsibilities:
+## Baseline
 
-- Location CRUD.
-- Location tree retrieval.
-- Booking CRUD.
-- Booking validation rules.
-- PostgreSQL persistence through TypeORM.
-- Logging and exception handling.
+Phase 2 foundation is implemented:
 
-Implementation is intentionally not generated yet. Read the project specs in `../../docs/` before scaffolding.
+- `GET /health`
+- Environment validation with `@nestjs/config` and Joi
+- PostgreSQL connection through TypeORM
+- Global validation pipe
+- Shared exception response shape
+- Structured request logging middleware
+- TypeORM migration scripts
+
+No location or booking domain logic exists yet.
+
+## Local Run
+
+From repository root:
+
+```bash
+docker compose up -d postgres
+```
+
+From `apps/server`:
+
+```bash
+npm install
+npm run start:dev
+```
+
+Use values from repository-root `.env.example` in either repository-root `.env` or `apps/server/.env`.
+
+## Commands
+
+```bash
+npm run build
+npm run lint
+npm test
+npm run migration:generate -- src/database/migrations/<MigrationName>
+npm run migration:run
+npm run migration:revert
+```

@@ -192,6 +192,8 @@ kamal-pre-deploy-envs.sh
 .agents/skills/*
 !.agents/skills/nestjs-expert/
 !.agents/skills/nestjs-expert/**
+!.agents/skills/e2e-test/
+!.agents/skills/e2e-test/**
 .codex/
 
 .auto-claude/
