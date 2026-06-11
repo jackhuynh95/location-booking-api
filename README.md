@@ -1,127 +1,161 @@
 # location-booking-api
 
-RESTful API backend for managing hierarchical building locations and room bookings, built with NestJS, TypeScript, TypeORM, and PostgreSQL.
+RESTful location and room-booking system for the SJ Assignment 2026 brief.
 
-## Project Status
+The project manages hierarchical building locations, loads the original assignment sample data, validates room bookings by department/capacity/open time, and includes a reviewer admin UI served by the NestJS runtime.
 
-This repository has the NestJS server foundation, location domain, booking persistence, booking validation rules, reviewer admin UI, and Docker runtime packaging in place.
+## Status
 
-## Assignment Scope
+Submission-ready implementation is in place:
 
-The system manages:
+- NestJS API in `apps/server`.
+- Vite React admin in `apps/admin`.
+- PostgreSQL persistence through TypeORM.
+- Idempotent assignment seed data.
+- Docker runtime serving both API and built admin assets from one NestJS container.
+- Documentation for API, database design, architecture, roadmap, and operations.
 
-- A hierarchical location tree such as `Building > Floor > Room`.
-- CRUD operations for locations.
-- Room booking requests.
-- Booking validation by department, capacity, and open time.
+## Features
 
-## Required Stack
+- Location CRUD.
+- Hierarchical location tree retrieval.
+- Assignment sample data seeding.
+- Booking creation with validation rules:
+  - department must match the room department;
+  - attendee count must not exceed room capacity;
+  - booking time must fit the room open-time window;
+  - overlapping bookings are rejected;
+  - non-bookable locations are rejected.
+- Reviewer admin UI:
+  - shows seeded assignment locations;
+  - includes no-seed guidance;
+  - supports location create/update flows;
+  - includes booking validation demo form.
+
+## Stack
 
 - Node.js
 - NestJS
 - TypeScript
 - TypeORM
 - PostgreSQL
-
-## Working Docs
-
-- [Assignment Brief](docs/specs/assignment-brief.md)
-- [Functional Specification](docs/specs/functional-spec.md)
-- [Architecture Notes](docs/architecture/architecture-notes.md)
-- [Development Guardrails](docs/guardrails/development-guardrails.md)
-- [Project Structure](docs/development/project-structure.md)
-- [Local Development Harness](docs/development/local-development-harness.md)
-- [Docker Compose Notes](docs/operations/docker-compose.md)
-- [Runtime Packaging](docs/operations/runtime-packaging.md)
-- [Implementation Roadmap](docs/roadmap/IMPLEMENTATION_ROADMAP.md)
-- [Epic Vision](docs/roadmap/EPIC.md)
-- [Locations API](docs/api/locations.md)
-- [Bookings API](docs/api/bookings.md)
-- [Location Database Design](docs/database/location-design.md)
-- [Booking Database Design](docs/database/booking-design.md)
+- React
+- Vite
+- Docker Compose
 
 ## Repository Shape
 
 ```text
 location-booking-api/
 |-- apps/
-|   |-- server/             # NestJS REST API
+|   |-- server/             # NestJS REST API and static admin host
 |   `-- admin/              # Vite React reviewer admin
-|-- docs/                   # Specs, architecture, operations, guardrails
-|-- docker-compose.yml      # Local infrastructure harness
-`-- AGENTS.md               # Agent instructions and project guardrails
+|-- docs/                   # Specs, API docs, architecture, operations, roadmap
+|-- docker-compose.yml      # PostgreSQL + server runtime
+|-- .env.example            # Safe local environment template
+`-- AGENTS.md               # Agent instructions and guardrails
 ```
 
-## Local Setup
+## Quick Start
 
-From repository root:
+From the repository root:
 
-```bash
+```bashV
+cp .env.example .env
 docker compose up -d postgres
-```
-
-From `apps/server`:
-
-```bash
-npm install
+cd apps/server
+npm ci
 npm run migration:run
 npm run seed:locations
 npm run start:dev
 ```
 
-The seed command loads the original assignment sample locations and is safe to rerun. Seeded rows appear through `GET /locations` and `GET /locations/tree`.
+Useful URLs:
 
-Booking examples are documented in [Bookings API](docs/api/bookings.md). Use `GET /locations` after seeding to copy a room `id`, then create bookings against that `locationId`.
+- API health: `http://localhost:3000/health`
+- Locations tree: `http://localhost:3000/locations/tree`
 
-## Admin UI
+The seed command loads 13 assignment locations and is safe to rerun.
 
-From `apps/admin`:
+## Admin Development
+
+Start the API first, then run:
 
 ```bash
-npm install
+cd apps/admin
+npm ci
 VITE_API_BASE_URL=http://localhost:3000 npm run dev
 ```
 
-Open `http://localhost:5173/admin/`. The admin reads `GET /locations/tree`, shows seeded assignment rows, includes no-seed guidance, supports location create/update, and includes a booking validation form.
+Open `http://localhost:5173/admin/`.
 
-Production admin assets are built with:
-
-```bash
-npm run build
-```
-
-## Verification
-
-From `apps/server`:
-
-```bash
-npm run lint
-npm test -- --runInBand
-npm run test:e2e -- --runInBand
-npm run build
-```
-
-From `apps/admin`:
-
-```bash
-npm run build
-```
+The admin reads location data from the backend API. After seeding, the assignment locations are visible in the tree/list view.
 
 ## Docker Runtime
 
-The final runtime image serves both REST API routes and the built admin UI at `/admin`.
+The production-style runtime serves both REST API routes and built admin assets from the NestJS server container.
 
 ```bash
-docker compose up --build server
+docker compose up --build -d server
 ```
 
 Then open:
 
 - API health: `http://localhost:3000/health`
-- Admin: `http://localhost:3000/admin`
+- Admin: `http://localhost:3000/admin/`
 
-PostgreSQL remains a separate Compose service. The server image reads `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD`, `DB_DATABASE`, `DB_SSL`, `DB_SYNCHRONIZE`, and `DB_LOGGING` from environment variables.
+PostgreSQL remains an external Compose service. Runtime database values come from environment variables in `docker-compose.yml` or `.env`.
 
-## Delivery Intent
+## Verification
 
-The final deliverable is source code uploaded to a personal GitHub account with clean documentation, exception handling, logging, system design notes, and database design notes.
+Latest readiness pass:
+
+- Server `npm ci`: pass, 0 vulnerabilities.
+- Admin `npm ci`: pass, 0 vulnerabilities.
+- Unit tests: 4 suites, 17 tests pass.
+- E2E tests: 2 suites, 6 tests pass.
+- ESLint: pass.
+- TypeScript format check: pass.
+- Markdown/docs format check: pass.
+- Server production build: pass.
+- Admin production build: pass.
+- Docker runtime: `docker compose up --build -d server` pass, server healthy.
+- Runtime smoke: `/health`, `/admin/`, admin JS/CSS, and admin deep-link fallback all return 200.
+- Clean DB rehearsal: migrations pass, seed inserts 13 assignment locations.
+- Runtime seed: idempotent, 0 inserted, 13 updated, 13 total.
+- API docs checked against live responses: location tree/list, booking success 201, validation 400, overlap 409.
+- Admin docs match runtime: Vite app is served at `/admin/`, assets copied into the NestJS image.
+
+Manual screenshot evidence can be collected in [Manual Test Evidence](docs/evidence/manual-test-evidence.md).
+
+Run locally:
+
+```bash
+cd apps/server
+npm run lint
+npm test -- --runInBand
+npm run test:e2e -- --runInBand
+npm run build
+
+cd ../admin
+npm run build
+```
+
+## Documentation
+
+- [Assignment Brief](docs/specs/assignment-brief.md)
+- [Functional Specification](docs/specs/functional-spec.md)
+- [Locations API](docs/api/locations.md)
+- [Bookings API](docs/api/bookings.md)
+- [Location Database Design](docs/database/location-design.md)
+- [Booking Database Design](docs/database/booking-design.md)
+- [Architecture Notes](docs/architecture/architecture-notes.md)
+- [Runtime Packaging](docs/operations/runtime-packaging.md)
+- [Docker Compose Notes](docs/operations/docker-compose.md)
+- [Manual Test Evidence](docs/evidence/manual-test-evidence.md)
+- [Implementation Roadmap](docs/roadmap/IMPLEMENTATION_ROADMAP.md)
+- [Epic Vision](docs/roadmap/EPIC.md)
+
+## Submission Notes
+
+This repository is ready for GitHub submission as a complete assignment deliverable with source code, documentation, seed data, validation tests, admin reviewer experience, and Docker runtime packaging.
