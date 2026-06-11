@@ -21,6 +21,8 @@ Use these documents before implementation decisions:
 - `docs/development/project-structure.md`
 - `docs/development/local-development-harness.md`
 - `docs/operations/docker-compose.md`
+- `docs/roadmap/IMPLEMENTATION_ROADMAP.md`
+- `docs/roadmap/EPIC.md`
 
 ## Repository Layout
 
@@ -50,6 +52,7 @@ This repository follows a small monorepo shape inspired by the user's larger Med
 - Treat `apps/server` and `apps/admin` as independent app roots.
 - Do not copy Medusa-specific architecture, services, credentials, or scripts into this project.
 - Keep `docker-compose.yml` focused on local development infrastructure until service Dockerfiles exist.
+- Follow the roadmap phases in `docs/roadmap/IMPLEMENTATION_ROADMAP.md`; do not skip into later phases unless the user explicitly asks.
 
 ## Shell Rule
 

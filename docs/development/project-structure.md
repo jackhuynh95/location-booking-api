@@ -4,20 +4,20 @@ This project uses a small monorepo-style harness.
 
 ```text
 location-booking-api/
-├── apps/
-│   ├── server/
-│   └── admin/
-├── docs/
-│   ├── architecture/
-│   ├── decisions/
-│   ├── development/
-│   ├── guardrails/
-│   ├── operations/
-│   └── specs/
-├── docker-compose.yml
-├── AGENTS.md
-├── LICENSE
-└── README.md
+|-- apps/
+|   |-- server/
+|   `-- admin/
+|-- docs/
+|   |-- architecture/
+|   |-- decisions/
+|   |-- development/
+|   |-- guardrails/
+|   |-- operations/
+|   `-- specs/
+|-- docker-compose.yml
+|-- AGENTS.md
+|-- LICENSE
+`-- README.md
 ```
 
 ## App Boundaries

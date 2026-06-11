@@ -32,17 +32,19 @@ The system manages:
 - [Project Structure](docs/development/project-structure.md)
 - [Local Development Harness](docs/development/local-development-harness.md)
 - [Docker Compose Notes](docs/operations/docker-compose.md)
+- [Implementation Roadmap](docs/roadmap/IMPLEMENTATION_ROADMAP.md)
+- [Epic Vision](docs/roadmap/EPIC.md)
 
 ## Repository Shape
 
 ```text
 location-booking-api/
-├── apps/
-│   ├── server/             # Future NestJS REST API
-│   └── admin/              # Future admin client, if approved
-├── docs/                   # Specs, architecture, operations, guardrails
-├── docker-compose.yml      # Local infrastructure harness
-└── AGENTS.md               # Agent instructions and project guardrails
+|-- apps/
+|   |-- server/             # Future NestJS REST API
+|   `-- admin/              # Future admin client, if approved
+|-- docs/                   # Specs, architecture, operations, guardrails
+|-- docker-compose.yml      # Local infrastructure harness
+`-- AGENTS.md               # Agent instructions and project guardrails
 ```
 
 ## Delivery Intent
