@@ -1,2 +1,35 @@
 # location-booking-api
-Use this GitHub description:  **RESTful API backend for managing hierarchical building locations and room bookings, built with NestJS, TypeScript, TypeORM, and PostgreSQL. Includes validation for department, capacity, and open-time booking rules.**
+
+RESTful API backend for managing hierarchical building locations and room bookings, built with NestJS, TypeScript, TypeORM, and PostgreSQL.
+
+## Project Status
+
+This repository is currently in the specification and harness phase. Code generation and framework scaffolding should happen only after the functional requirements, architecture guardrails, and delivery structure are agreed.
+
+## Assignment Scope
+
+The system manages:
+
+- A hierarchical location tree such as `Building > Floor > Room`.
+- CRUD operations for locations.
+- Room booking requests.
+- Booking validation by department, capacity, and open time.
+
+## Required Stack
+
+- Node.js
+- NestJS
+- TypeScript
+- TypeORM
+- PostgreSQL
+
+## Working Docs
+
+- [Assignment Brief](docs/specs/assignment-brief.md)
+- [Functional Specification](docs/specs/functional-spec.md)
+- [Architecture Notes](docs/architecture/architecture-notes.md)
+- [Development Guardrails](docs/guardrails/development-guardrails.md)
+
+## Delivery Intent
+
+The final deliverable is source code uploaded to a personal GitHub account with clean documentation, exception handling, logging, system design notes, and database design notes.
