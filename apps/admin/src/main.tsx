@@ -16,6 +16,7 @@ import {
   Trash2,
   X,
 } from 'lucide-react';
+import { buildBookingPayload } from './bookingPayload';
 import './styles.css';
 
 type LocationNode = {
@@ -42,13 +43,19 @@ type LocationDraft = {
   parentId: string;
 };
 
+type BookingDraft = {
+  startAt: string;
+  endAt: string;
+};
+
 type BookingResponse = {
   id: string;
   locationId: string;
   department: string;
   attendeeCount: number;
-  startsAt: string;
-  endsAt: string;
+  startAt: string;
+  endAt: string;
+  status: string;
   createdAt: string;
 };
 
@@ -127,6 +134,13 @@ const requestJson = async <T,>(path: string, init?: RequestInit): Promise<T> => 
 const flattenLocations = (nodes: LocationNode[]): LocationNode[] =>
   nodes.flatMap((node) => [node, ...flattenLocations(node.children ?? [])]);
 
+const rangesOverlap = (
+  leftStart: Date,
+  leftEnd: Date,
+  rightStart: Date,
+  rightEnd: Date,
+) => leftStart < rightEnd && leftEnd > rightStart;
+
 const collectDescendantIds = (location: LocationNode | undefined): Set<string> => {
   const ids = new Set<string>();
 
@@ -148,8 +162,15 @@ const App = () => {
   const [locations, setLocations] = React.useState<LoadState<LocationNode[]>>({
     status: 'loading',
   });
+  const [bookings, setBookings] = React.useState<LoadState<BookingResponse[]>>({
+    status: 'loading',
+  });
   const [selectedUpdateLocationId, setSelectedUpdateLocationId] = React.useState('');
   const [selectedLocationId, setSelectedLocationId] = React.useState('');
+  const [bookingDraft, setBookingDraft] = React.useState<BookingDraft>({
+    startAt: '',
+    endAt: '',
+  });
   const [locationDraft, setLocationDraft] =
     React.useState<LocationDraft>(emptyLocationDraft);
   const [isLocationEditing, setIsLocationEditing] = React.useState(true);
@@ -174,13 +195,56 @@ const App = () => {
     }
   }, []);
 
+  const loadBookings = React.useCallback(async () => {
+    setBookings({ status: 'loading' });
+    try {
+      const existingBookings = await requestJson<BookingResponse[]>('/bookings');
+      setBookings({ status: 'ready', data: existingBookings });
+    } catch (error) {
+      setBookings({
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Could not load bookings',
+      });
+    }
+  }, []);
+
   React.useEffect(() => {
     void loadLocations();
   }, [loadLocations]);
 
+  React.useEffect(() => {
+    void loadBookings();
+  }, [loadBookings]);
+
   const flatLocations =
     locations.status === 'ready' ? flattenLocations(locations.data) : [];
   const bookableLocations = flatLocations.filter((location) => location.isBookable);
+  const bookingStartAt = bookingDraft.startAt ? new Date(bookingDraft.startAt) : null;
+  const bookingEndAt = bookingDraft.endAt ? new Date(bookingDraft.endAt) : null;
+  const hasBookingTimeRange =
+    bookingStartAt !== null &&
+    bookingEndAt !== null &&
+    !Number.isNaN(bookingStartAt.getTime()) &&
+    !Number.isNaN(bookingEndAt.getTime()) &&
+    bookingEndAt > bookingStartAt;
+  const unavailableLocationIds =
+    bookings.status === 'ready' && hasBookingTimeRange
+      ? new Set(
+          bookings.data
+            .filter(
+              (booking) =>
+                booking.status === 'confirmed' &&
+                rangesOverlap(
+                  bookingStartAt,
+                  bookingEndAt,
+                  new Date(booking.startAt),
+                  new Date(booking.endAt),
+                ),
+            )
+            .map((booking) => booking.locationId),
+        )
+      : new Set<string>();
+  const selectedBookingRoomUnavailable = unavailableLocationIds.has(selectedLocationId);
   const selectedUpdateLocation = flatLocations.find(
     (location) => location.id === selectedUpdateLocationId,
   );
@@ -355,14 +419,14 @@ const App = () => {
     event.preventDefault();
     setBookingError(null);
     setBookingResult(null);
+
+    if (selectedBookingRoomUnavailable) {
+      setBookingError('Room is already booked during the selected time.');
+      return;
+    }
+
     const data = new FormData(event.currentTarget);
-    const payload = {
-      locationId: String(data.get('locationId') ?? ''),
-      department: String(data.get('department') ?? '').trim(),
-      attendeeCount: Number(data.get('attendeeCount') ?? 0),
-      startsAt: String(data.get('startsAt') ?? ''),
-      endsAt: String(data.get('endsAt') ?? ''),
-    };
+    const payload = buildBookingPayload(data);
 
     try {
       const created = await requestJson<BookingResponse>('/bookings', {
@@ -370,6 +434,7 @@ const App = () => {
         body: JSON.stringify(payload),
       });
       setBookingResult(created);
+      await loadBookings();
     } catch (error) {
       setBookingError(error instanceof Error ? error.message : 'Could not create booking');
     }
@@ -382,7 +447,14 @@ const App = () => {
           <p className="eyebrow">Reviewer admin</p>
           <h1>Location Booking API</h1>
         </div>
-        <button className="icon-button" type="button" onClick={() => void loadLocations()}>
+        <button
+          className="icon-button"
+          type="button"
+          onClick={() => {
+            void loadLocations();
+            void loadBookings();
+          }}
+        >
           <RefreshCw size={18} />
           <span>Refresh</span>
         </button>
@@ -614,10 +686,22 @@ const App = () => {
                   {bookableLocations.map((location) => (
                     <option key={location.id} value={location.id}>
                       {location.number} - {location.name}
+                      {unavailableLocationIds.has(location.id) ? ' (Unavailable)' : ''}
                     </option>
                   ))}
                 </select>
               </label>
+              <div className="availability-row wide">
+                {bookings.status === 'error' ? (
+                  <span className="availability-badge warning">Availability unavailable</span>
+                ) : selectedBookingRoomUnavailable ? (
+                  <span className="availability-badge unavailable">Unavailable</span>
+                ) : hasBookingTimeRange && selectedLocationId ? (
+                  <span className="availability-badge available">Available</span>
+                ) : (
+                  <span className="availability-badge neutral">Choose time to check availability</span>
+                )}
+              </div>
               <label>
                 Department
                 <input name="department" required placeholder="EFM" />
@@ -628,11 +712,33 @@ const App = () => {
               </label>
               <label>
                 Starts
-                <input name="startsAt" required type="datetime-local" />
+                <input
+                  name="startAt"
+                  required
+                  type="datetime-local"
+                  value={bookingDraft.startAt}
+                  onChange={(event) =>
+                    setBookingDraft((current) => ({
+                      ...current,
+                      startAt: event.target.value,
+                    }))
+                  }
+                />
               </label>
               <label>
                 Ends
-                <input name="endsAt" required type="datetime-local" />
+                <input
+                  name="endAt"
+                  required
+                  type="datetime-local"
+                  value={bookingDraft.endAt}
+                  onChange={(event) =>
+                    setBookingDraft((current) => ({
+                      ...current,
+                      endAt: event.target.value,
+                    }))
+                  }
+                />
               </label>
             </div>
             <button className="primary-button" type="submit">

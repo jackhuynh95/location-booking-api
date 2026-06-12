@@ -335,6 +335,38 @@ select {
   color: #172026;
 }
 
+.availability-row {
+  display: flex;
+  align-items: center;
+  min-height: 28px;
+}
+
+.availability-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.availability-badge.available {
+  background: #e4f4ec;
+  color: #17643c;
+}
+
+.availability-badge.unavailable {
+  background: #fff0ed;
+  color: #9a3412;
+}
+
+.availability-badge.neutral,
+.availability-badge.warning {
+  background: #edf2f4;
+  color: #46575f;
+}
+
 .toggle {
   grid-template-columns: 20px 1fr;
   align-items: center;
