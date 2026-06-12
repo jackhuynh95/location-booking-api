@@ -60,7 +60,7 @@ location-booking-api/
 
 From the repository root:
 
-```bashV
+```bash
 cp .env.example .env
 docker compose up -d postgres
 cd apps/server
@@ -74,8 +74,11 @@ Useful URLs:
 
 - API health: `http://localhost:3000/health`
 - Locations tree: `http://localhost:3000/locations/tree`
+- Admin GUI: `http://localhost:3000/admin/` when using Docker runtime, or `http://localhost:5173/admin/` in admin dev mode
 
 The seed command loads 13 assignment locations and is safe to rerun.
+
+For a reviewer-friendly step-by-step guide, see [Reviewer Local Runbook](docs/submission/reviewer-local-runbook.md).
 
 ## Admin Development
 
@@ -96,7 +99,9 @@ The admin reads location data from the backend API. After seeding, the assignmen
 The production-style runtime serves both REST API routes and built admin assets from the NestJS server container.
 
 ```bash
+cp .env.example .env
 docker compose up --build -d server
+docker compose exec server npm run seed:locations:prod
 ```
 
 Then open:
@@ -153,9 +158,12 @@ npm run build
 - [Runtime Packaging](docs/operations/runtime-packaging.md)
 - [Docker Compose Notes](docs/operations/docker-compose.md)
 - [Manual Test Evidence](docs/evidence/manual-test-evidence.md)
+- [Reviewer Local Runbook](docs/submission/reviewer-local-runbook.md)
 - [Implementation Roadmap](docs/roadmap/IMPLEMENTATION_ROADMAP.md)
 - [Epic Vision](docs/roadmap/EPIC.md)
 
 ## Submission Notes
 
-This repository is ready for GitHub submission as a complete assignment deliverable with source code, documentation, seed data, validation tests, admin reviewer experience, and Docker runtime packaging.
+This repository is ready for GitHub submission as a complete assignment deliverable with source code, documentation, seed data, validation tests, admin reviewer experience, Docker runtime packaging, and screenshot evidence.
+
+Repository: [jackhuynh95/location-booking-api](https://github.com/jackhuynh95/location-booking-api)
