@@ -20,21 +20,19 @@ Example:
 2026-06-12-01-admin-seeded-location-tree.png
 ```
 
-## Evidence Checklist
+## Functional Requirement Evidence
 
-| #   | Area                   | What To Capture                              | Expected Result                                 | Screenshot                                                 | Status |
-| --- | ---------------------- | -------------------------------------------- | ----------------------------------------------- | ---------------------------------------------------------- | ------ |
-| 1   | Docker runtime         | `docker compose ps` or server healthy state  | `server` and `postgres` are running and healthy | `screenshots/TODO.png`                                     | TODO   |
-| 2   | Health endpoint        | Browser or API client at `/health`           | HTTP 200 with healthy server response           | `screenshots/TODO.png`                                     | TODO   |
-| 3   | Assignment seed        | Seed command output or `/locations` response | 13 assignment locations exist                   | `screenshots/TODO.png`                                     | TODO   |
-| 4   | Location tree API      | `/locations/tree` response                   | Building/location hierarchy is visible          | `screenshots/TODO.png`                                     | TODO   |
-| 5   | Admin seeded view      | `/admin/` location tree/list                 | Seeded assignment locations are visible         | `screenshots/2026-06-11-01-admin-seeded-location-tree.png` | Pass   |
-| 6   | Admin no-seed guidance | Admin view against empty DB, if tested       | UI explains how to seed data                    | `screenshots/TODO.png`                                     | TODO   |
-| 7   | Booking success        | Valid booking request                        | HTTP 201 or admin success state                 | `screenshots/TODO.png`                                     | TODO   |
-| 8   | Booking validation     | Invalid department/capacity/time request     | HTTP 400 or clear admin validation error        | `screenshots/TODO.png`                                     | TODO   |
-| 9   | Booking overlap        | Overlapping booking request                  | HTTP 409 conflict                               | `screenshots/TODO.png`                                     | TODO   |
-| 10  | Admin static runtime   | `/admin/` served from Dockerized NestJS      | Admin loads from port `3000`                    | `screenshots/TODO.png`                                     | TODO   |
-| 11  | Admin deep link        | Refresh a nested admin URL                   | Page still loads, API routes unaffected         | `screenshots/TODO.png`                                     | TODO   |
+| #   | Requirement                  | What Was Captured                                     | Expected Result                                     | Screenshot                                                          | Status |
+| --- | ---------------------------- | ----------------------------------------------------- | --------------------------------------------------- | ------------------------------------------------------------------- | ------ |
+| 1   | 3.1 Read location tree       | Admin at `http://localhost:3000/admin/` location tree | Seeded building/location hierarchy is visible       | [screenshots/2026-06-12-03-location-read-tree.png](screenshots/2026-06-12-03-location-read-tree.png) | Pass   |
+| 2   | 3.1 Create location          | Created temporary `EVID-*` location under `A-01`      | Success message and new tree node are visible       | [screenshots/2026-06-12-04-location-create-success.png](screenshots/2026-06-12-04-location-create-success.png) | Pass   |
+| 3   | 3.1 Update location          | Updated temporary location capacity/open time         | Updated values and success message are visible      | [screenshots/2026-06-12-05-location-update-capacity-open-time.png](screenshots/2026-06-12-05-location-update-capacity-open-time.png) | Pass   |
+| 4   | 3.1 Delete location          | Deleted temporary leaf location                       | Delete success message and tree after removal shown | [screenshots/2026-06-12-06-location-delete-success.png](screenshots/2026-06-12-06-location-delete-success.png) | Pass   |
+| 5   | 3.2 Valid booking            | Submitted valid booking for `A-01-01`                 | Booking accepted success state is visible           | [screenshots/2026-06-12-07-booking-valid-success.png](screenshots/2026-06-12-07-booking-valid-success.png) | Pass   |
+| 6   | 3.2 Department validation    | Submitted booking with wrong department               | Department mismatch validation error is visible     | [screenshots/2026-06-12-08-booking-department-validation.png](screenshots/2026-06-12-08-booking-department-validation.png) | Pass   |
+| 7   | 3.2 Capacity validation      | Submitted booking over `A-01-03` capacity             | Capacity validation error is visible                | [screenshots/2026-06-12-09-booking-capacity-validation.png](screenshots/2026-06-12-09-booking-capacity-validation.png) | Pass   |
+| 8   | 3.2 Open-time validation     | Submitted Sunday booking for weekday-only room        | Open-time validation error is visible               | [screenshots/2026-06-12-10-booking-open-time-validation.png](screenshots/2026-06-12-10-booking-open-time-validation.png) | Pass   |
+| 9   | Optional calendar/timeline   | Calendar filtered to `A-01-01` booking date           | Reservation block and availability window shown     | [screenshots/2026-06-12-11-calendar-timeline-availability.png](screenshots/2026-06-12-11-calendar-timeline-availability.png) | Pass   |
 
 ## Notes
 
@@ -48,3 +46,4 @@ Example:
 | Date       | Tester     | Environment          | Summary                                                                |
 | ---------- | ---------- | -------------------- | ---------------------------------------------------------------------- |
 | 2026-06-11 | Jack Huynh | Local Docker runtime | Captured admin seeded location tree at `http://localhost:3000/admin/`. |
+| 2026-06-12 | Codex      | Local Docker runtime | Captured final functional evidence for location CRUD and booking rules. |
