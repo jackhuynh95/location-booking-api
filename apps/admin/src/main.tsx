@@ -4,8 +4,10 @@ import { createRoot } from 'react-dom/client';
 import {
   Building2,
   CalendarCheck,
+  CalendarDays,
   CircleAlert,
   CircleCheck,
+  Clock,
   LoaderCircle,
   Lock,
   Pencil,
@@ -48,6 +50,8 @@ type BookingDraft = {
   endAt: string;
 };
 
+type AdminTab = 'locations' | 'booking' | 'calendar';
+
 type BookingResponse = {
   id: string;
   locationId: string;
@@ -71,6 +75,8 @@ type LoadState<T> =
   | { status: 'ready'; data: T };
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? '';
+const timelineStartHour = 8;
+const timelineEndHour = 18;
 
 const apiUrl = (path: string) => `${apiBaseUrl}${path}`;
 
@@ -141,6 +147,96 @@ const rangesOverlap = (
   rightEnd: Date,
 ) => leftStart < rightEnd && leftEnd > rightStart;
 
+const toDateInputValue = (date: Date) => {
+  const pad = (part: number) => part.toString().padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+};
+
+const formatTime = (date: Date) =>
+  new Intl.DateTimeFormat(undefined, {
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date);
+
+const startOfLocalDate = (dateValue: string) => new Date(`${dateValue}T00:00:00`);
+
+const endOfLocalDate = (dateValue: string) => new Date(`${dateValue}T23:59:59.999`);
+
+const clamp = (value: number, min: number, max: number) =>
+  Math.min(Math.max(value, min), max);
+
+const minutesSinceTimelineStart = (date: Date) =>
+  (date.getHours() - timelineStartHour) * 60 + date.getMinutes();
+
+const getBookingPosition = (booking: BookingResponse) => {
+  const start = new Date(booking.startAt);
+  const end = new Date(booking.endAt);
+  const totalMinutes = (timelineEndHour - timelineStartHour) * 60;
+  const startMinutes = clamp(minutesSinceTimelineStart(start), 0, totalMinutes);
+  const endMinutes = clamp(minutesSinceTimelineStart(end), 0, totalMinutes);
+
+  return {
+    left: `${(startMinutes / totalMinutes) * 100}%`,
+    width: `${Math.max(((endMinutes - startMinutes) / totalMinutes) * 100, 2)}%`,
+  };
+};
+
+const getAvailableRanges = (bookings: BookingResponse[], dateValue: string) => {
+  const day = startOfLocalDate(dateValue);
+  const windowStart = new Date(day);
+  windowStart.setHours(timelineStartHour, 0, 0, 0);
+  const windowEnd = new Date(day);
+  windowEnd.setHours(timelineEndHour, 0, 0, 0);
+
+  const confirmed = bookings
+    .filter((booking) => booking.status === 'confirmed')
+    .map((booking) => ({
+      start: new Date(booking.startAt),
+      end: new Date(booking.endAt),
+    }))
+    .filter(({ start, end }) => rangesOverlap(windowStart, windowEnd, start, end))
+    .map(({ start, end }) => ({
+      start: start > windowStart ? start : windowStart,
+      end: end < windowEnd ? end : windowEnd,
+    }))
+    .sort((left, right) => left.start.getTime() - right.start.getTime());
+
+  const ranges: Array<{ start: Date; end: Date }> = [];
+  let cursor = windowStart;
+
+  for (const booking of confirmed) {
+    if (booking.start > cursor) {
+      ranges.push({ start: cursor, end: booking.start });
+    }
+    if (booking.end > cursor) {
+      cursor = booking.end;
+    }
+  }
+
+  if (cursor < windowEnd) {
+    ranges.push({ start: cursor, end: windowEnd });
+  }
+
+  return ranges.filter((range) => range.end.getTime() - range.start.getTime() >= 30 * 60 * 1000);
+};
+
+const hasBookingConflict = (booking: BookingResponse, bookings: BookingResponse[]) => {
+  if (booking.status !== 'confirmed') {
+    return false;
+  }
+
+  const start = new Date(booking.startAt);
+  const end = new Date(booking.endAt);
+
+  return bookings.some(
+    (candidate) =>
+      candidate.id !== booking.id &&
+      candidate.status === 'confirmed' &&
+      candidate.locationId === booking.locationId &&
+      rangesOverlap(start, end, new Date(candidate.startAt), new Date(candidate.endAt)),
+  );
+};
+
 const collectDescendantIds = (location: LocationNode | undefined): Set<string> => {
   const ids = new Set<string>();
 
@@ -159,6 +255,7 @@ const collectDescendantIds = (location: LocationNode | undefined): Set<string> =
 };
 
 const App = () => {
+  const [activeTab, setActiveTab] = React.useState<AdminTab>('locations');
   const [locations, setLocations] = React.useState<LoadState<LocationNode[]>>({
     status: 'loading',
   });
@@ -179,6 +276,8 @@ const App = () => {
   const [locationError, setLocationError] = React.useState<string | null>(null);
   const [bookingResult, setBookingResult] = React.useState<BookingResponse | null>(null);
   const [bookingError, setBookingError] = React.useState<string | null>(null);
+  const [calendarDate, setCalendarDate] = React.useState(() => toDateInputValue(new Date()));
+  const [calendarRoomId, setCalendarRoomId] = React.useState('');
 
   const loadLocations = React.useCallback(async () => {
     setLocations({ status: 'loading' });
@@ -216,9 +315,14 @@ const App = () => {
     void loadBookings();
   }, [loadBookings]);
 
-  const flatLocations =
-    locations.status === 'ready' ? flattenLocations(locations.data) : [];
-  const bookableLocations = flatLocations.filter((location) => location.isBookable);
+  const flatLocations = React.useMemo(
+    () => (locations.status === 'ready' ? flattenLocations(locations.data) : []),
+    [locations],
+  );
+  const bookableLocations = React.useMemo(
+    () => flatLocations.filter((location) => location.isBookable),
+    [flatLocations],
+  );
   const bookingStartAt = bookingDraft.startAt ? new Date(bookingDraft.startAt) : null;
   const bookingEndAt = bookingDraft.endAt ? new Date(bookingDraft.endAt) : null;
   const hasBookingTimeRange =
@@ -257,6 +361,23 @@ const App = () => {
   if (selectedUpdateLocationId) {
     blockedParentIds.add(selectedUpdateLocationId);
   }
+  const calendarRooms = calendarRoomId
+    ? bookableLocations.filter((location) => location.id === calendarRoomId)
+    : bookableLocations;
+  const bookingsForCalendarDate =
+    bookings.status === 'ready'
+      ? bookings.data.filter((booking) =>
+          rangesOverlap(
+            startOfLocalDate(calendarDate),
+            endOfLocalDate(calendarDate),
+            new Date(booking.startAt),
+            new Date(booking.endAt),
+          ),
+        )
+      : [];
+  const selectedCalendarRoom = bookableLocations.find(
+    (location) => location.id === calendarRoomId,
+  );
 
   React.useEffect(() => {
     if (!selectedUpdateLocationId) {
@@ -466,6 +587,34 @@ const App = () => {
         <Metric label="Buildings" value={new Set(flatLocations.map((item) => item.building)).size} />
       </section>
 
+      <nav className="tab-list" aria-label="Admin views">
+        <button
+          className={activeTab === 'locations' ? 'active' : ''}
+          type="button"
+          onClick={() => setActiveTab('locations')}
+        >
+          <Building2 size={18} />
+          <span>Location management</span>
+        </button>
+        <button
+          className={activeTab === 'booking' ? 'active' : ''}
+          type="button"
+          onClick={() => setActiveTab('booking')}
+        >
+          <CalendarCheck size={18} />
+          <span>Booking validation</span>
+        </button>
+        <button
+          className={activeTab === 'calendar' ? 'active' : ''}
+          type="button"
+          onClick={() => setActiveTab('calendar')}
+        >
+          <CalendarDays size={18} />
+          <span>Calendar / Timeline</span>
+        </button>
+      </nav>
+
+      {activeTab === 'locations' ? (
       <section className="workspace">
         <div className="tree-panel">
           <div className="panel-heading">
@@ -668,90 +817,47 @@ const App = () => {
             <InlineResult message={locationResult} error={locationError} />
           </form>
 
-          <form className="form-panel" onSubmit={submitBooking}>
-            <div className="panel-heading">
-              <CalendarCheck size={20} />
-              <h2>Booking validation</h2>
-            </div>
-            <div className="form-grid">
-              <label className="wide">
-                Room
-                <select
-                  name="locationId"
-                  required
-                  value={selectedLocationId}
-                  onChange={(event) => setSelectedLocationId(event.target.value)}
-                >
-                  <option value="">Select bookable room</option>
-                  {bookableLocations.map((location) => (
-                    <option key={location.id} value={location.id}>
-                      {location.number} - {location.name}
-                      {unavailableLocationIds.has(location.id) ? ' (Unavailable)' : ''}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <div className="availability-row wide">
-                {bookings.status === 'error' ? (
-                  <span className="availability-badge warning">Availability unavailable</span>
-                ) : selectedBookingRoomUnavailable ? (
-                  <span className="availability-badge unavailable">Unavailable</span>
-                ) : hasBookingTimeRange && selectedLocationId ? (
-                  <span className="availability-badge available">Available</span>
-                ) : (
-                  <span className="availability-badge neutral">Choose time to check availability</span>
-                )}
-              </div>
-              <label>
-                Department
-                <input name="department" required placeholder="EFM" />
-              </label>
-              <label>
-                Attendees
-                <input name="attendeeCount" required type="number" min="1" defaultValue="2" />
-              </label>
-              <label>
-                Starts
-                <input
-                  name="startAt"
-                  required
-                  type="datetime-local"
-                  value={bookingDraft.startAt}
-                  onChange={(event) =>
-                    setBookingDraft((current) => ({
-                      ...current,
-                      startAt: event.target.value,
-                    }))
-                  }
-                />
-              </label>
-              <label>
-                Ends
-                <input
-                  name="endAt"
-                  required
-                  type="datetime-local"
-                  value={bookingDraft.endAt}
-                  onChange={(event) =>
-                    setBookingDraft((current) => ({
-                      ...current,
-                      endAt: event.target.value,
-                    }))
-                  }
-                />
-              </label>
-            </div>
-            <button className="primary-button" type="submit">
-              <CalendarCheck size={18} />
-              <span>Validate booking</span>
-            </button>
-            <InlineResult
-              message={bookingResult ? `Booking accepted: ${bookingResult.id}` : null}
-              error={bookingError}
-            />
-          </form>
         </div>
       </section>
+      ) : null}
+
+      {activeTab === 'booking' ? (
+        <section className="single-view">
+          <BookingValidationForm
+            bookingDraft={bookingDraft}
+            bookingError={bookingError}
+            bookingResult={bookingResult}
+            bookingsStatus={bookings.status}
+            bookableLocations={bookableLocations}
+            hasBookingTimeRange={hasBookingTimeRange}
+            selectedBookingRoomUnavailable={selectedBookingRoomUnavailable}
+            selectedLocationId={selectedLocationId}
+            unavailableLocationIds={unavailableLocationIds}
+            onBookingDraftChange={setBookingDraft}
+            onLocationChange={setSelectedLocationId}
+            onSubmit={submitBooking}
+          />
+        </section>
+      ) : null}
+
+      {activeTab === 'calendar' ? (
+        <section className="single-view">
+          <BookingTimeline
+            allRooms={bookableLocations}
+            bookings={bookings}
+            bookingsForDate={bookingsForCalendarDate}
+            calendarDate={calendarDate}
+            calendarRoomId={calendarRoomId}
+            hasBookingTimeRange={hasBookingTimeRange}
+            rooms={calendarRooms}
+            selectedBookingRoomUnavailable={selectedBookingRoomUnavailable}
+            selectedRoom={selectedCalendarRoom}
+            onDateChange={setCalendarDate}
+            onRefresh={loadBookings}
+            onRoomChange={setCalendarRoomId}
+          />
+        </section>
+      ) : null}
     </main>
   );
 };
@@ -762,6 +868,321 @@ const Metric = ({ label, value }: { label: string; value: number }) => (
     <strong>{value}</strong>
   </div>
 );
+
+const BookingValidationForm = ({
+  bookingDraft,
+  bookingError,
+  bookingResult,
+  bookingsStatus,
+  bookableLocations,
+  hasBookingTimeRange,
+  selectedBookingRoomUnavailable,
+  selectedLocationId,
+  unavailableLocationIds,
+  onBookingDraftChange,
+  onLocationChange,
+  onSubmit,
+}: {
+  bookingDraft: BookingDraft;
+  bookingError: string | null;
+  bookingResult: BookingResponse | null;
+  bookingsStatus: LoadState<BookingResponse[]>['status'];
+  bookableLocations: LocationNode[];
+  hasBookingTimeRange: boolean;
+  selectedBookingRoomUnavailable: boolean;
+  selectedLocationId: string;
+  unavailableLocationIds: Set<string>;
+  onBookingDraftChange: React.Dispatch<React.SetStateAction<BookingDraft>>;
+  onLocationChange: (locationId: string) => void;
+  onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
+}) => (
+  <form className="form-panel booking-panel" onSubmit={onSubmit}>
+    <div className="panel-heading">
+      <CalendarCheck size={20} />
+      <h2>Booking validation</h2>
+    </div>
+    <div className="form-grid">
+      <label className="wide">
+        Room
+        <select
+          name="locationId"
+          required
+          value={selectedLocationId}
+          onChange={(event) => onLocationChange(event.target.value)}
+        >
+          <option value="">Select bookable room</option>
+          {bookableLocations.map((location) => (
+            <option key={location.id} value={location.id}>
+              {location.number} - {location.name}
+              {unavailableLocationIds.has(location.id) ? ' (Unavailable)' : ''}
+            </option>
+          ))}
+        </select>
+      </label>
+      <div className="availability-row wide">
+        {bookingsStatus === 'error' ? (
+          <span className="availability-badge warning">Availability unavailable</span>
+        ) : selectedBookingRoomUnavailable ? (
+          <span className="availability-badge unavailable">Unavailable</span>
+        ) : hasBookingTimeRange && selectedLocationId ? (
+          <span className="availability-badge available">Available</span>
+        ) : (
+          <span className="availability-badge neutral">Choose time to check availability</span>
+        )}
+      </div>
+      <label>
+        Department
+        <input name="department" required placeholder="EFM" />
+      </label>
+      <label>
+        Attendees
+        <input name="attendeeCount" required type="number" min="1" defaultValue="2" />
+      </label>
+      <label>
+        Starts
+        <input
+          name="startAt"
+          required
+          type="datetime-local"
+          value={bookingDraft.startAt}
+          onChange={(event) =>
+            onBookingDraftChange((current) => ({
+              ...current,
+              startAt: event.target.value,
+            }))
+          }
+        />
+      </label>
+      <label>
+        Ends
+        <input
+          name="endAt"
+          required
+          type="datetime-local"
+          value={bookingDraft.endAt}
+          onChange={(event) =>
+            onBookingDraftChange((current) => ({
+              ...current,
+              endAt: event.target.value,
+            }))
+          }
+        />
+      </label>
+    </div>
+    <button className="primary-button" type="submit">
+      <CalendarCheck size={18} />
+      <span>Validate booking</span>
+    </button>
+    <InlineResult
+      message={bookingResult ? `Booking accepted: ${bookingResult.id}` : null}
+      error={bookingError}
+    />
+  </form>
+);
+
+const BookingTimeline = ({
+  allRooms,
+  bookings,
+  bookingsForDate,
+  calendarDate,
+  calendarRoomId,
+  hasBookingTimeRange,
+  rooms,
+  selectedBookingRoomUnavailable,
+  selectedRoom,
+  onDateChange,
+  onRefresh,
+  onRoomChange,
+}: {
+  allRooms: LocationNode[];
+  bookings: LoadState<BookingResponse[]>;
+  bookingsForDate: BookingResponse[];
+  calendarDate: string;
+  calendarRoomId: string;
+  hasBookingTimeRange: boolean;
+  rooms: LocationNode[];
+  selectedBookingRoomUnavailable: boolean;
+  selectedRoom: LocationNode | undefined;
+  onDateChange: (dateValue: string) => void;
+  onRefresh: () => Promise<void>;
+  onRoomChange: (locationId: string) => void;
+}) => {
+  const hourLabels = Array.from(
+    { length: timelineEndHour - timelineStartHour + 1 },
+    (_, index) => timelineStartHour + index,
+  );
+  const selectedRoomBookings = selectedRoom
+    ? bookingsForDate.filter((booking) => booking.locationId === selectedRoom.id)
+    : [];
+
+  if (bookings.status === 'loading') {
+    return (
+      <div className="timeline-panel">
+        <div className="panel-heading">
+          <LoaderCircle className="spin" size={20} />
+          <h2>Loading booking timeline</h2>
+        </div>
+      </div>
+    );
+  }
+
+  if (bookings.status === 'error') {
+    return (
+      <div className="timeline-panel">
+        <div className="callout danger">
+          <CircleAlert size={20} />
+          {bookings.message}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="timeline-panel">
+      <div className="panel-heading split-heading">
+        <div>
+          <div className="heading-row">
+            <CalendarDays size={20} />
+            <h2>Calendar / Timeline</h2>
+          </div>
+          <p>Confirmed bookings shown as unavailable blocks from 08:00 to 18:00.</p>
+        </div>
+        <button className="icon-button compact" type="button" onClick={() => void onRefresh()}>
+          <RefreshCw size={16} />
+          <span>Refresh</span>
+        </button>
+      </div>
+
+      <div className="timeline-controls">
+        <label>
+          Date
+          <input
+            type="date"
+            value={calendarDate}
+            onChange={(event) => onDateChange(event.target.value)}
+          />
+        </label>
+        <label>
+          Room
+          <select value={calendarRoomId} onChange={(event) => onRoomChange(event.target.value)}>
+            <option value="">All bookable rooms</option>
+            {allRooms.map((room) => (
+              <option key={room.id} value={room.id}>
+                {room.number} - {room.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <div className="timeline-status">
+          {selectedRoom && hasBookingTimeRange ? (
+            <span
+              className={`availability-badge ${
+                selectedBookingRoomUnavailable ? 'unavailable' : 'available'
+              }`}
+            >
+              {selectedRoom.number}: {selectedBookingRoomUnavailable ? 'Unavailable' : 'Available'}
+            </span>
+          ) : selectedRoom ? (
+            <span className="availability-badge neutral">
+              {selectedRoom.number}: {selectedRoomBookings.length} booked period
+              {selectedRoomBookings.length === 1 ? '' : 's'} on this date
+            </span>
+          ) : (
+            <span className="availability-badge neutral">Pick room/time in validation tab for status</span>
+          )}
+        </div>
+      </div>
+
+      {allRooms.length === 0 ? (
+        <div className="empty-state">
+          <Search size={28} />
+          <h3>No bookable rooms</h3>
+          <p>Create or seed locations with bookable rooms, then refresh.</p>
+        </div>
+      ) : rooms.length === 0 ? (
+        <div className="empty-state">
+          <Search size={28} />
+          <h3>No room matches this filter</h3>
+          <p>Clear the room filter to see all bookable rooms.</p>
+        </div>
+      ) : (
+        <div className="timeline-grid" style={{ '--hour-count': hourLabels.length } as React.CSSProperties}>
+          <div className="timeline-room-heading">Room</div>
+          <div className="timeline-hours">
+            {hourLabels.map((hour) => (
+              <span key={hour}>{hour.toString().padStart(2, '0')}:00</span>
+            ))}
+          </div>
+          {rooms.map((room) => {
+            const roomBookings = bookingsForDate.filter(
+              (booking) => booking.locationId === room.id,
+            );
+            const availableRanges = getAvailableRanges(roomBookings, calendarDate);
+
+            return (
+              <React.Fragment key={room.id}>
+                <div className="timeline-room">
+                  <strong>{room.number}</strong>
+                  <span>{room.name}</span>
+                  <small>
+                    {room.department ?? 'No department'} · {room.capacity ?? '-'} seats
+                  </small>
+                </div>
+                <div className="timeline-track">
+                  <div className="timeline-hour-lines">
+                    {hourLabels.map((hour) => (
+                      <span key={hour} />
+                    ))}
+                  </div>
+                  {roomBookings.map((booking) => {
+                    const start = new Date(booking.startAt);
+                    const end = new Date(booking.endAt);
+                    const hasConflict = hasBookingConflict(booking, bookingsForDate);
+
+                    return (
+                      <article
+                        className={`booking-block ${hasConflict ? 'conflict' : ''}`}
+                        key={booking.id}
+                        style={getBookingPosition(booking)}
+                        title={`${room.number} ${formatTime(start)}-${formatTime(end)}`}
+                      >
+                        <strong>{room.number} · {room.name}</strong>
+                        <span>{room.department ?? booking.department}</span>
+                        <span>{booking.attendeeCount} attendees</span>
+                        <span>{formatTime(start)}-{formatTime(end)}</span>
+                      </article>
+                    );
+                  })}
+                  {roomBookings.length === 0 ? (
+                    <span className="available-note">Available all day</span>
+                  ) : (
+                    <div className="available-ranges">
+                      <Clock size={14} />
+                      <span>
+                        {availableRanges.length > 0
+                          ? availableRanges
+                              .map((range) => `${formatTime(range.start)}-${formatTime(range.end)}`)
+                              .join(', ')
+                          : 'No open gaps in timeline window'}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </React.Fragment>
+            );
+          })}
+        </div>
+      )}
+
+      {bookingsForDate.length === 0 ? (
+        <div className="callout">
+          <CircleCheck size={18} />
+          No bookings found for this date.
+        </div>
+      ) : null}
+    </div>
+  );
+};
 
 const LocationTree = ({
   state,
