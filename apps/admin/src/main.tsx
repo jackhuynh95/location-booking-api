@@ -93,6 +93,7 @@ const App = () => {
   const [locations, setLocations] = React.useState<LoadState<LocationNode[]>>({
     status: 'loading',
   });
+  const [selectedUpdateLocationId, setSelectedUpdateLocationId] = React.useState('');
   const [selectedLocationId, setSelectedLocationId] = React.useState('');
   const [locationResult, setLocationResult] = React.useState<string | null>(null);
   const [locationError, setLocationError] = React.useState<string | null>(null);
@@ -124,10 +125,18 @@ const App = () => {
 
   const submitLocation = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    const form = event.currentTarget;
     setLocationError(null);
     setLocationResult(null);
-    const data = new FormData(event.currentTarget);
-    const updateId = String(data.get('updateId') ?? '');
+
+    if (!form.checkValidity()) {
+      setLocationError('Fill out building, number, and name before saving.');
+      form.reportValidity();
+      return;
+    }
+
+    const data = new FormData(form);
+    const updateId = selectedUpdateLocationId;
     const capacityValue = String(data.get('capacity') ?? '').trim();
     const payload = {
       building: String(data.get('building') ?? '').trim(),
@@ -149,7 +158,10 @@ const App = () => {
         },
       );
       setLocationResult(`${updateId ? 'Updated' : 'Created'} ${saved.number}`);
-      event.currentTarget.reset();
+      if (!updateId && form.isConnected) {
+        form.reset();
+        setSelectedUpdateLocationId('');
+      }
       await loadLocations();
     } catch (error) {
       setLocationError(error instanceof Error ? error.message : 'Could not save location');
@@ -209,7 +221,7 @@ const App = () => {
         </div>
 
         <div className="side-stack">
-          <form className="form-panel" onSubmit={submitLocation}>
+          <form className="form-panel" noValidate onSubmit={submitLocation}>
             <div className="panel-heading">
               <Save size={20} />
               <h2>Create or update location</h2>
@@ -217,7 +229,11 @@ const App = () => {
             <div className="form-grid">
               <label className="wide">
                 Update target
-                <select name="updateId">
+                <select
+                  name="updateId"
+                  value={selectedUpdateLocationId}
+                  onChange={(event) => setSelectedUpdateLocationId(event.target.value)}
+                >
                   <option value="">Create new location</option>
                   {flatLocations.map((location) => (
                     <option key={location.id} value={location.id}>
