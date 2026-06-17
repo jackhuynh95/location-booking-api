@@ -12,8 +12,12 @@ services:
       DB_PASSWORD: location_booking
       DB_DATABASE: location_booking
       DB_SSL: "false"
-      DB_SYNCHRONIZE: "true"
+      DB_SYNCHRONIZE: "false"
+      DB_MIGRATIONS_RUN: "true"
       DB_LOGGING: "false"
+      DB_POOL_MAX: 10
+      DB_POOL_IDLE_TIMEOUT_MS: 30000
+      DB_POOL_CONNECTION_TIMEOUT_MS: 5000
     ports:
       - "3000:3000"
     depends_on:

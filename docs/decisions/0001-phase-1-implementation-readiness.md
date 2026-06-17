@@ -59,7 +59,11 @@ Environment variables are documented in root `.env.example` because local Docker
 | `DB_DATABASE`    | PostgreSQL database        | `location_booking` |
 | `DB_SSL`         | PostgreSQL SSL toggle      | `false`            |
 | `DB_SYNCHRONIZE` | TypeORM schema sync toggle | `false`            |
+| `DB_MIGRATIONS_RUN` | TypeORM migration run toggle | `true`         |
 | `DB_LOGGING`     | TypeORM SQL logging toggle | `false`            |
+| `DB_POOL_MAX` | PostgreSQL pool max connections | `10` |
+| `DB_POOL_IDLE_TIMEOUT_MS` | PostgreSQL idle timeout | `30000` |
+| `DB_POOL_CONNECTION_TIMEOUT_MS` | PostgreSQL connection timeout | `5000` |
 
 ## Alternatives Considered
 

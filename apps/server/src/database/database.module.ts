@@ -16,8 +16,18 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         ssl: config.getOrThrow<boolean>('database.ssl'),
         autoLoadEntities: true,
         synchronize: config.getOrThrow<boolean>('database.synchronize'),
+        migrationsRun: config.getOrThrow<boolean>('database.migrationsRun'),
         logging: config.getOrThrow<boolean>('database.logging'),
         migrations: [__dirname + '/migrations/*{.ts,.js}'],
+        extra: {
+          max: config.getOrThrow<number>('database.pool.max'),
+          idleTimeoutMillis: config.getOrThrow<number>(
+            'database.pool.idleTimeoutMillis',
+          ),
+          connectionTimeoutMillis: config.getOrThrow<number>(
+            'database.pool.connectionTimeoutMillis',
+          ),
+        },
       }),
     }),
   ],

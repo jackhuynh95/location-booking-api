@@ -15,6 +15,9 @@ type DatabaseEnv = {
   DB_DATABASE: string;
   DB_SSL: boolean;
   DB_LOGGING: boolean;
+  DB_POOL_MAX: number;
+  DB_POOL_IDLE_TIMEOUT_MS: number;
+  DB_POOL_CONNECTION_TIMEOUT_MS: number;
 };
 
 const validationResult = envValidationSchema.validate(process.env, {
@@ -40,4 +43,9 @@ export default new DataSource({
   logging: env.DB_LOGGING,
   entities: [__dirname + '/../**/*.entity{.ts,.js}'],
   migrations: [__dirname + '/migrations/*{.ts,.js}'],
+  extra: {
+    max: env.DB_POOL_MAX,
+    idleTimeoutMillis: env.DB_POOL_IDLE_TIMEOUT_MS,
+    connectionTimeoutMillis: env.DB_POOL_CONNECTION_TIMEOUT_MS,
+  },
 });

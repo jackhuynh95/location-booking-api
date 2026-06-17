@@ -11,6 +11,19 @@ export const envValidationSchema = Joi.object({
   DB_PASSWORD: Joi.string().required(),
   DB_DATABASE: Joi.string().required(),
   DB_SSL: Joi.boolean().default(false),
-  DB_SYNCHRONIZE: Joi.boolean().default(false),
+  DB_SYNCHRONIZE: Joi.boolean()
+    .when('NODE_ENV', {
+      is: 'production',
+      then: Joi.valid(false),
+      otherwise: Joi.boolean(),
+    })
+    .default(false)
+    .messages({
+      'any.only': 'DB_SYNCHRONIZE must be false in production',
+    }),
+  DB_MIGRATIONS_RUN: Joi.boolean().default(true),
   DB_LOGGING: Joi.boolean().default(false),
+  DB_POOL_MAX: Joi.number().integer().min(1).default(10),
+  DB_POOL_IDLE_TIMEOUT_MS: Joi.number().integer().min(1000).default(30000),
+  DB_POOL_CONNECTION_TIMEOUT_MS: Joi.number().integer().min(1000).default(5000),
 });

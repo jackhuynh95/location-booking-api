@@ -8,9 +8,12 @@ Booking creation validates the target location before persistence. A location is
 
 - Lifecycle: new bookings are created with `status: "confirmed"`.
 - Overlap: confirmed bookings cannot overlap for the same `locationId`.
+- Boundary: back-to-back bookings are valid when one booking ends exactly when another starts.
+- Invalid interval: `endAt` must be strictly after `startAt`.
 - Cancellation: `cancelled` is reserved in the database enum, but no cancel endpoint is exposed yet.
 - Open-time validation: supported assignment values are `Always open`, `Mon to Fri (9AM to 6PM)`, `Mon to Sat (9AM to 6PM)`, and `Mon to Sun (9AM to 6PM)`.
-- Timestamp rule: the open-time check uses the wall-clock date and time supplied in each ISO 8601 timestamp.
+- Timestamp rule: the open-time check uses the wall-clock date and time supplied in each ISO 8601 timestamp. The server does not convert these wall-clock fields to its own timezone before checking room hours.
+- Unknown fields are rejected by the global validation pipe.
 
 ## Create Booking
 
@@ -141,6 +144,18 @@ Overlap:
 Response status: `409 Conflict`.
 
 Response message: `Booking overlaps an existing booking for this location`.
+
+Invalid interval:
+
+Response status: `400 Bad Request`.
+
+Response message: `Booking endAt must be after startAt`.
+
+Unsupported stored open time:
+
+Response status: `400 Bad Request`.
+
+Response message prefix: `Unsupported open time format`.
 
 Invalid UUID:
 

@@ -23,6 +23,8 @@
 - Index on `location_id`.
 - Indexes on `start_at`, `end_at`, and `status` for listing and overlap checks.
 - Booking creation locks the target `locations` row with `FOR UPDATE` in a database transaction. The confirmed-overlap check and insert use the same transaction manager, so concurrent create requests for the same room are serialized before the overlap check runs.
+- Runtime TypeORM schema synchronization is disabled for production. The app runs deterministic migrations from a clean database when `DB_MIGRATIONS_RUN=true`.
+- PostgreSQL pool settings are explicit: `DB_POOL_MAX`, `DB_POOL_IDLE_TIMEOUT_MS`, and `DB_POOL_CONNECTION_TIMEOUT_MS`.
 
 ## Relationship
 
@@ -61,3 +63,25 @@ The database enforces structural invariants. The service enforces assignment rul
 7. No confirmed booking overlaps the requested interval for the same location.
 
 The service rejects bookings whose `startAt` and `endAt` do not fall on the same local calendar day before applying the room open-time window. This keeps assignment open-time rules day-scoped and rejects overnight or multi-day requests.
+
+## Boundary And Lifecycle Rules
+
+- New bookings are always `confirmed`.
+- `cancelled` exists in the database enum for future lifecycle support, but there is no cancel/delete booking endpoint in this assignment scope.
+- Overlap checks only consider `confirmed` bookings. A future cancel endpoint can set `status='cancelled'` without blocking that room's later time slots.
+- Exact adjacency is allowed: one booking may end at the same instant another booking starts.
+- Zero-length or negative-length intervals are rejected by both service validation and the database check constraint.
+- Location deletion is leaf-only hard delete. The booking foreign key uses `ON DELETE RESTRICT`, so a location with existing bookings cannot be removed accidentally.
+
+## Timezone Assumption
+
+Booking DTOs must send ISO 8601 timestamps. Open-time validation uses the wall-clock date and time present in the submitted timestamp string instead of converting the request into the server timezone. This matches the assignment's human-readable room schedule fields and avoids server-location drift during review. Persisted `timestamptz` values still represent instants in PostgreSQL.
+
+Supported open-time strings are:
+
+- `Always open`
+- `Mon to Fri (9AM to 6PM)`
+- `Mon to Sat (9AM to 6PM)`
+- `Mon to Sun (9AM to 6PM)`
+
+Unsupported stored open-time strings fail closed with `400 Bad Request`.

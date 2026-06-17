@@ -38,7 +38,9 @@ Run commands through `rtk` when using the Codex shell.
 
 - `server` depends on healthy `postgres`.
 - `server` uses `DB_HOST=postgres` and other local-only database defaults.
-- `DB_SYNCHRONIZE=true` is enabled for this local packaged review path so the container can create schema automatically.
+- `DB_SYNCHRONIZE=false`; schema comes from migrations, not TypeORM schema sync.
+- `DB_MIGRATIONS_RUN=true` lets the packaged review container apply deterministic migrations on startup.
+- PostgreSQL pool defaults are explicit: max 10 connections, 30s idle timeout, 5s connection timeout.
 - `GET /health` powers the server healthcheck.
 - Admin is served at `/admin`.
 

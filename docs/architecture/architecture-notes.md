@@ -37,6 +37,10 @@ Current booking flow:
 3. Service validates bookable location, department match, capacity, open time, and same-room overlap.
 4. A valid request persists as a `confirmed` booking.
 
+The overlap check runs inside a TypeORM transaction after locking the target `locations` row with `FOR UPDATE`. This keeps same-room create requests serialized without Redis or app-level distributed locks.
+
+Redis, RabbitMQ, and queue processing are not part of booking correctness in this assignment. The synchronous request path is acceptable because each create request performs all validation and persistence atomically against PostgreSQL. Future production additions could use an outbox, notification queue, audit stream, or distributed lock only if requirements expand beyond the current REST assignment.
+
 ## API Surface Draft
 
 Location endpoints:

@@ -10,7 +10,7 @@ import {
 import { Location } from '../locations/location.entity';
 import { Booking, BookingStatus } from './booking.entity';
 import { BookingsService } from './bookings.service';
-import { isWithinOpenTime } from './open-time';
+import { isWithinOpenTime, parseOpenTime } from './open-time';
 
 const date = new Date('2026-06-11T00:00:00.000Z');
 
@@ -307,6 +307,74 @@ describe('BookingsService', () => {
     ).rejects.toThrow(ConflictException);
   });
 
+  it('ignores cancelled bookings during overlap checks', async () => {
+    const location = makeLocation({ id: 'location-1' });
+    const existing = makeBooking({
+      id: 'booking-1',
+      locationId: location.id,
+      status: BookingStatus.CANCELLED,
+      startAt: new Date('2026-06-12T10:00:00.000Z'),
+      endAt: new Date('2026-06-12T11:00:00.000Z'),
+    });
+    const { service } = createService([location], [existing]);
+
+    await expect(
+      service.create({
+        locationId: location.id,
+        department: 'EFM',
+        attendeeCount: 4,
+        startAt: '2026-06-12T10:30:00.000Z',
+        endAt: '2026-06-12T11:30:00.000Z',
+      }),
+    ).resolves.toMatchObject({ status: BookingStatus.CONFIRMED });
+  });
+
+  it('allows adjacent bookings at exact start and end boundaries', async () => {
+    const location = makeLocation({ id: 'location-1' });
+    const existing = makeBooking({
+      id: 'booking-1',
+      locationId: location.id,
+      startAt: new Date('2026-06-12T10:00:00.000Z'),
+      endAt: new Date('2026-06-12T11:00:00.000Z'),
+    });
+    const { service } = createService([location], [existing]);
+
+    await expect(
+      service.create({
+        locationId: location.id,
+        department: 'EFM',
+        attendeeCount: 4,
+        startAt: '2026-06-12T11:00:00.000Z',
+        endAt: '2026-06-12T12:00:00.000Z',
+      }),
+    ).resolves.toMatchObject({ locationId: location.id });
+
+    await expect(
+      service.create({
+        locationId: location.id,
+        department: 'EFM',
+        attendeeCount: 4,
+        startAt: '2026-06-12T09:00:00.000Z',
+        endAt: '2026-06-12T10:00:00.000Z',
+      }),
+    ).resolves.toMatchObject({ locationId: location.id });
+  });
+
+  it('rejects endAt equal to startAt', async () => {
+    const location = makeLocation({ id: 'location-1' });
+    const { service } = createService([location]);
+
+    await expect(
+      service.create({
+        locationId: location.id,
+        department: 'EFM',
+        attendeeCount: 4,
+        startAt: '2026-06-12T10:00:00.000Z',
+        endAt: '2026-06-12T10:00:00.000Z',
+      }),
+    ).rejects.toThrow(BadRequestException);
+  });
+
   it('rejects endAt before startAt', async () => {
     const location = makeLocation({ id: 'location-1' });
     const { service } = createService([location]);
@@ -320,6 +388,54 @@ describe('BookingsService', () => {
         endAt: '2026-06-12T10:00:00.000Z',
       }),
     ).rejects.toThrow(BadRequestException);
+  });
+
+  it('rejects bookable locations with empty room department', async () => {
+    const location = makeLocation({ id: 'location-1', department: null });
+    const { service } = createService([location]);
+
+    await expect(
+      service.create({
+        locationId: location.id,
+        department: 'EFM',
+        attendeeCount: 4,
+        startAt: '2026-06-12T10:00:00.000Z',
+        endAt: '2026-06-12T11:00:00.000Z',
+      }),
+    ).rejects.toThrow('Booking department does not match location department');
+  });
+
+  it('rejects bookable locations with empty room capacity', async () => {
+    const location = makeLocation({ id: 'location-1', capacity: null });
+    const { service } = createService([location]);
+
+    await expect(
+      service.create({
+        locationId: location.id,
+        department: 'EFM',
+        attendeeCount: 4,
+        startAt: '2026-06-12T10:00:00.000Z',
+        endAt: '2026-06-12T11:00:00.000Z',
+      }),
+    ).rejects.toThrow('Booking attendee count exceeds location capacity');
+  });
+
+  it('fails safely when a stored open time uses an unsupported format', async () => {
+    const location = makeLocation({
+      id: 'location-1',
+      openTime: 'weekdays 9-6',
+    });
+    const { service } = createService([location]);
+
+    await expect(
+      service.create({
+        locationId: location.id,
+        department: 'EFM',
+        attendeeCount: 4,
+        startAt: '2026-06-12T10:00:00.000Z',
+        endAt: '2026-06-12T11:00:00.000Z',
+      }),
+    ).rejects.toThrow('Unsupported open time format weekdays 9-6');
   });
 
   it('allows only one concurrent overlapping booking for the same location', async () => {
@@ -425,5 +541,37 @@ describe('isWithinOpenTime', () => {
         '2026-06-14T11:00:00.000Z',
       ),
     ).toBe(false);
+  });
+
+  it('accepts Always open without day or hour restrictions', () => {
+    expect(
+      isWithinOpenTime(
+        'Always open',
+        '2026-06-14T23:00:00.000Z',
+        '2026-06-14T23:30:00.000Z',
+      ),
+    ).toBe(true);
+  });
+
+  it.each([
+    ['Mon to Fri (9AM to 6PM)', '2026-06-12T10:00:00.000Z', true],
+    ['Mon to Sat (9AM to 6PM)', '2026-06-13T10:00:00.000Z', true],
+    ['Mon to Sun (9AM to 6PM)', '2026-06-14T10:00:00.000Z', true],
+    ['Mon to Fri (9AM to 6PM)', '2026-06-13T10:00:00.000Z', false],
+  ])(
+    'evaluates supported day ranges for %s',
+    (roomOpenTime, startAt, expected) => {
+      expect(
+        isWithinOpenTime(
+          roomOpenTime,
+          startAt,
+          startAt.replace('10:00:00.000Z', '11:00:00.000Z'),
+        ),
+      ).toBe(expected);
+    },
+  );
+
+  it('throws a 400 exception for unsupported open-time strings', () => {
+    expect(() => parseOpenTime('Mon-Fri 9AM-6PM')).toThrow(BadRequestException);
   });
 });
