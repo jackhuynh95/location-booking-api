@@ -85,6 +85,7 @@ const getWallClock = (isoTimestamp: string) => {
   const dayOfMonth = Number(match[3]);
 
   return {
+    dateKey: `${match[1]}-${match[2]}-${match[3]}`,
     day: new Date(Date.UTC(year, monthIndex, dayOfMonth)).getUTCDay(),
     minutes: Number(match[4]) * 60 + Number(match[5]),
   };
@@ -102,6 +103,10 @@ export const isWithinOpenTime = (
 
   const start = getWallClock(startAt);
   const end = getWallClock(endAt);
+
+  if (start.dateKey !== end.dateKey) {
+    return false;
+  }
 
   return (
     isDayInRange(start.day, openWindow.startDay, openWindow.endDay) &&

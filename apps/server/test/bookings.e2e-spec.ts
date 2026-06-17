@@ -1,4 +1,9 @@
-import { HttpStatus, INestApplication, ValidationPipe } from '@nestjs/common';
+import {
+  ConflictException,
+  HttpStatus,
+  INestApplication,
+  ValidationPipe,
+} from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import { App as SupertestApp } from 'supertest/types';
@@ -119,5 +124,31 @@ describe('BookingsController (e2e)', () => {
       .expect(HttpStatus.BAD_REQUEST);
 
     expect(service.create).not.toHaveBeenCalled();
+  });
+
+  it('returns 409 when booking overlaps an existing booking', async () => {
+    const httpServer = app.getHttpServer() as SupertestApp;
+
+    service.create.mockRejectedValue(
+      new ConflictException(
+        'Booking overlaps an existing booking for this location',
+      ),
+    );
+
+    await request(httpServer)
+      .post('/bookings')
+      .send({
+        locationId,
+        department: 'EFM',
+        attendeeCount: 4,
+        startAt: '2026-06-12T10:30:00.000Z',
+        endAt: '2026-06-12T11:30:00.000Z',
+      })
+      .expect(HttpStatus.CONFLICT)
+      .expect(({ body }: { body: { message?: unknown } }) => {
+        expect(body.message).toBe(
+          'Booking overlaps an existing booking for this location',
+        );
+      });
   });
 });

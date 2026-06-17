@@ -4,8 +4,14 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { LessThan, MoreThan, Repository } from 'typeorm';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
+import {
+  DataSource,
+  EntityManager,
+  LessThan,
+  MoreThan,
+  Repository,
+} from 'typeorm';
 import { Location } from '../locations/location.entity';
 import { Booking, BookingStatus } from './booking.entity';
 import { BookingResponse, toBookingResponse } from './booking.types';
@@ -17,12 +23,11 @@ export class BookingsService {
   constructor(
     @InjectRepository(Booking)
     private readonly bookingsRepository: Repository<Booking>,
-    @InjectRepository(Location)
-    private readonly locationsRepository: Repository<Location>,
+    @InjectDataSource()
+    private readonly dataSource: DataSource,
   ) {}
 
   async create(dto: CreateBookingDto): Promise<BookingResponse> {
-    const location = await this.getLocationOrThrow(dto.locationId);
     const startAt = new Date(dto.startAt);
     const endAt = new Date(dto.endAt);
 
@@ -33,22 +38,29 @@ export class BookingsService {
       throw new BadRequestException('Booking endAt must be after startAt');
     }
 
-    this.ensureLocationBookable(location);
-    this.ensureDepartmentMatches(location, dto.department);
-    this.ensureCapacityFits(location, dto.attendeeCount);
-    this.ensureOpenTimeMatches(location, dto.startAt, dto.endAt);
-    await this.ensureNoOverlap(location.id, startAt, endAt);
+    return this.dataSource.transaction(async (manager) => {
+      const location = await this.getLocationForBookingOrThrow(
+        manager,
+        dto.locationId,
+      );
 
-    const booking = this.bookingsRepository.create({
-      locationId: location.id,
-      department: dto.department,
-      attendeeCount: dto.attendeeCount,
-      startAt,
-      endAt,
-      status: BookingStatus.CONFIRMED,
+      this.ensureLocationBookable(location);
+      this.ensureDepartmentMatches(location, dto.department);
+      this.ensureCapacityFits(location, dto.attendeeCount);
+      this.ensureOpenTimeMatches(location, dto.startAt, dto.endAt);
+      await this.ensureNoOverlap(manager, location.id, startAt, endAt);
+
+      const booking = manager.create(Booking, {
+        locationId: location.id,
+        department: dto.department,
+        attendeeCount: dto.attendeeCount,
+        startAt,
+        endAt,
+        status: BookingStatus.CONFIRMED,
+      });
+
+      return toBookingResponse(await manager.save(booking));
     });
-
-    return toBookingResponse(await this.bookingsRepository.save(booking));
   }
 
   async findAll(): Promise<BookingResponse[]> {
@@ -72,8 +84,14 @@ export class BookingsService {
     return booking;
   }
 
-  private async getLocationOrThrow(id: string): Promise<Location> {
-    const location = await this.locationsRepository.findOne({ where: { id } });
+  private async getLocationForBookingOrThrow(
+    manager: EntityManager,
+    id: string,
+  ): Promise<Location> {
+    const location = await manager.findOne(Location, {
+      where: { id },
+      lock: { mode: 'pessimistic_write' },
+    });
     if (!location) {
       throw new NotFoundException(`Location ${id} not found`);
     }
@@ -119,11 +137,12 @@ export class BookingsService {
   }
 
   private async ensureNoOverlap(
+    manager: EntityManager,
     locationId: string,
     startAt: Date,
     endAt: Date,
   ): Promise<void> {
-    const existing = await this.bookingsRepository.findOne({
+    const existing = await manager.findOne(Booking, {
       where: {
         locationId,
         status: BookingStatus.CONFIRMED,

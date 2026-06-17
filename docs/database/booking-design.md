@@ -22,6 +22,7 @@
 - Check constraint: `end_at > start_at`.
 - Index on `location_id`.
 - Indexes on `start_at`, `end_at`, and `status` for listing and overlap checks.
+- Booking creation locks the target `locations` row with `FOR UPDATE` in a database transaction. The confirmed-overlap check and insert use the same transaction manager, so concurrent create requests for the same room are serialized before the overlap check runs.
 
 ## Relationship
 
@@ -58,3 +59,5 @@ The database enforces structural invariants. The service enforces assignment rul
 5. Attendee count is not greater than location capacity.
 6. Requested wall-clock time is within the supported location open-time rule.
 7. No confirmed booking overlaps the requested interval for the same location.
+
+The service rejects bookings whose `startAt` and `endAt` do not fall on the same local calendar day before applying the room open-time window. This keeps assignment open-time rules day-scoped and rejects overnight or multi-day requests.

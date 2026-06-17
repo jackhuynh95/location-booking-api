@@ -1,8 +1,16 @@
 import { BadRequestException, ConflictException } from '@nestjs/common';
-import { FindOperator, Repository } from 'typeorm';
+import {
+  DataSource,
+  EntityManager,
+  EntityTarget,
+  FindOneOptions,
+  FindOperator,
+  Repository,
+} from 'typeorm';
 import { Location } from '../locations/location.entity';
 import { Booking, BookingStatus } from './booking.entity';
 import { BookingsService } from './bookings.service';
+import { isWithinOpenTime } from './open-time';
 
 const date = new Date('2026-06-11T00:00:00.000Z');
 
@@ -107,14 +115,94 @@ const createBookingRepository = (initialBookings: Booking[] = []) => {
   };
 };
 
+const createDataSource = (
+  bookingsRepository: Repository<Booking>,
+  locationsRepository: Repository<Location>,
+  options: { serializeTransactions?: boolean } = {},
+) => {
+  const manager = {
+    findOne: jest.fn(
+      <T extends Booking | Location>(
+        entity: EntityTarget<T>,
+        query: FindOneOptions<T>,
+      ): Promise<T | null> => {
+        if (entity === Location) {
+          return locationsRepository.findOne(
+            query as FindOneOptions<Location>,
+          ) as Promise<T | null>;
+        }
+
+        if (entity === Booking) {
+          return bookingsRepository.findOne(
+            query as FindOneOptions<Booking>,
+          ) as Promise<T | null>;
+        }
+
+        return Promise.resolve(null);
+      },
+    ),
+    create: jest.fn((_entity, booking: Partial<Booking>) =>
+      bookingsRepository.create(booking),
+    ),
+    save: jest.fn((booking: Booking) => bookingsRepository.save(booking)),
+  } as unknown as EntityManager & {
+    findOne: jest.Mock;
+    create: jest.Mock;
+    save: jest.Mock;
+  };
+
+  let queue = Promise.resolve();
+  const transaction = jest.fn(
+    async <T>(callback: (manager: EntityManager) => Promise<T>): Promise<T> => {
+      if (!options.serializeTransactions) {
+        return callback(manager);
+      }
+
+      const run = queue.then(() => callback(manager));
+      queue = run.then(
+        () => undefined,
+        () => undefined,
+      );
+
+      return run;
+    },
+  );
+
+  return {
+    manager,
+    dataSource: { transaction } as unknown as DataSource & {
+      transaction: jest.Mock;
+    },
+  };
+};
+
+const createService = (
+  locations: Location[],
+  initialBookings: Booking[] = [],
+  options: { serializeTransactions?: boolean } = {},
+) => {
+  const locationsRepository = createLocationRepository(locations);
+  const bookingsRepository = createBookingRepository(initialBookings);
+  const { dataSource, manager } = createDataSource(
+    bookingsRepository,
+    locationsRepository,
+    options,
+  );
+
+  return {
+    bookingsRepository,
+    dataSource,
+    manager,
+    service: new BookingsService(bookingsRepository, dataSource),
+  };
+};
+
 describe('BookingsService', () => {
   it('persists a valid booking', async () => {
     const location = makeLocation({ id: 'location-1' });
-    const bookingsRepository = createBookingRepository();
-    const service = new BookingsService(
-      bookingsRepository,
-      createLocationRepository([location]),
-    );
+    const { bookingsRepository, dataSource, manager, service } = createService([
+      location,
+    ]);
 
     const booking = await service.create({
       locationId: location.id,
@@ -131,14 +219,16 @@ describe('BookingsService', () => {
       status: BookingStatus.CONFIRMED,
     });
     expect(bookingsRepository.records.get(booking.id)).toBeDefined();
+    expect(dataSource.transaction).toHaveBeenCalledTimes(1);
+    expect(manager.findOne).toHaveBeenCalledWith(Location, {
+      where: { id: location.id },
+      lock: { mode: 'pessimistic_write' },
+    });
   });
 
   it('rejects department mismatch', async () => {
     const location = makeLocation({ id: 'location-1', department: 'FSS' });
-    const service = new BookingsService(
-      createBookingRepository(),
-      createLocationRepository([location]),
-    );
+    const { service } = createService([location]);
 
     await expect(
       service.create({
@@ -153,10 +243,7 @@ describe('BookingsService', () => {
 
   it('rejects capacity overflow', async () => {
     const location = makeLocation({ id: 'location-1', capacity: 3 });
-    const service = new BookingsService(
-      createBookingRepository(),
-      createLocationRepository([location]),
-    );
+    const { service } = createService([location]);
 
     await expect(
       service.create({
@@ -171,10 +258,7 @@ describe('BookingsService', () => {
 
   it('rejects closed-time booking', async () => {
     const location = makeLocation({ id: 'location-1' });
-    const service = new BookingsService(
-      createBookingRepository(),
-      createLocationRepository([location]),
-    );
+    const { service } = createService([location]);
 
     await expect(
       service.create({
@@ -189,10 +273,7 @@ describe('BookingsService', () => {
 
   it('rejects non-bookable location', async () => {
     const location = makeLocation({ id: 'location-1', isBookable: false });
-    const service = new BookingsService(
-      createBookingRepository(),
-      createLocationRepository([location]),
-    );
+    const { service } = createService([location]);
 
     await expect(
       service.create({
@@ -213,10 +294,7 @@ describe('BookingsService', () => {
       startAt: new Date('2026-06-12T10:00:00.000Z'),
       endAt: new Date('2026-06-12T11:00:00.000Z'),
     });
-    const service = new BookingsService(
-      createBookingRepository([existing]),
-      createLocationRepository([location]),
-    );
+    const { service } = createService([location], [existing]);
 
     await expect(
       service.create({
@@ -231,10 +309,7 @@ describe('BookingsService', () => {
 
   it('rejects endAt before startAt', async () => {
     const location = makeLocation({ id: 'location-1' });
-    const service = new BookingsService(
-      createBookingRepository(),
-      createLocationRepository([location]),
-    );
+    const { service } = createService([location]);
 
     await expect(
       service.create({
@@ -245,5 +320,110 @@ describe('BookingsService', () => {
         endAt: '2026-06-12T10:00:00.000Z',
       }),
     ).rejects.toThrow(BadRequestException);
+  });
+
+  it('allows only one concurrent overlapping booking for the same location', async () => {
+    const location = makeLocation({ id: 'location-1' });
+    const { service } = createService([location], [], {
+      serializeTransactions: true,
+    });
+
+    const results = await Promise.allSettled([
+      service.create({
+        locationId: location.id,
+        department: 'EFM',
+        attendeeCount: 4,
+        startAt: '2026-06-12T10:00:00.000Z',
+        endAt: '2026-06-12T11:00:00.000Z',
+      }),
+      service.create({
+        locationId: location.id,
+        department: 'EFM',
+        attendeeCount: 4,
+        startAt: '2026-06-12T10:30:00.000Z',
+        endAt: '2026-06-12T11:30:00.000Z',
+      }),
+    ]);
+
+    const fulfilled = results.filter((result) => result.status === 'fulfilled');
+    const rejected = results.filter(
+      (result): result is PromiseRejectedResult => result.status === 'rejected',
+    );
+
+    expect(fulfilled).toHaveLength(1);
+    expect(rejected).toHaveLength(1);
+    const rejectionReason: unknown = rejected[0].reason;
+
+    expect(rejectionReason).toBeInstanceOf(ConflictException);
+    if (!(rejectionReason instanceof ConflictException)) {
+      throw new Error('Expected conflicting request to reject with 409');
+    }
+    expect(rejectionReason.message).toBe(
+      'Booking overlaps an existing booking for this location',
+    );
+  });
+});
+
+describe('isWithinOpenTime', () => {
+  const openTime = 'Mon to Fri (9AM to 6PM)';
+
+  it('accepts same-day booking inside open hours', () => {
+    expect(
+      isWithinOpenTime(
+        openTime,
+        '2026-06-12T10:00:00.000Z',
+        '2026-06-12T11:00:00.000Z',
+      ),
+    ).toBe(true);
+  });
+
+  it('rejects same-day booking before opening', () => {
+    expect(
+      isWithinOpenTime(
+        openTime,
+        '2026-06-12T08:00:00.000Z',
+        '2026-06-12T09:00:00.000Z',
+      ),
+    ).toBe(false);
+  });
+
+  it('rejects same-day booking after closing', () => {
+    expect(
+      isWithinOpenTime(
+        openTime,
+        '2026-06-12T17:00:00.000Z',
+        '2026-06-12T19:00:00.000Z',
+      ),
+    ).toBe(false);
+  });
+
+  it('rejects overnight booking from Mon 22:00 to Tue 02:00', () => {
+    expect(
+      isWithinOpenTime(
+        openTime,
+        '2026-06-08T22:00:00.000Z',
+        '2026-06-09T02:00:00.000Z',
+      ),
+    ).toBe(false);
+  });
+
+  it('rejects multi-day booking even when both wall-clock times fit', () => {
+    expect(
+      isWithinOpenTime(
+        openTime,
+        '2026-06-08T10:00:00.000Z',
+        '2026-06-09T11:00:00.000Z',
+      ),
+    ).toBe(false);
+  });
+
+  it('rejects weekend booking for Mon-Fri rooms', () => {
+    expect(
+      isWithinOpenTime(
+        openTime,
+        '2026-06-14T10:00:00.000Z',
+        '2026-06-14T11:00:00.000Z',
+      ),
+    ).toBe(false);
   });
 });

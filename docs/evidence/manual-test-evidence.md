@@ -33,6 +33,10 @@ Example:
 | 7   | 3.2 Capacity validation      | Submitted booking over `A-01-03` capacity             | Capacity validation error is visible                | [screenshots/2026-06-12-09-booking-capacity-validation.png](screenshots/2026-06-12-09-booking-capacity-validation.png) | Pass   |
 | 8   | 3.2 Open-time validation     | Submitted Sunday booking for weekday-only room        | Open-time validation error is visible               | [screenshots/2026-06-12-10-booking-open-time-validation.png](screenshots/2026-06-12-10-booking-open-time-validation.png) | Pass   |
 | 9   | Optional calendar/timeline   | Calendar filtered to `A-01-01` booking date           | Reservation block and availability window shown     | [screenshots/2026-06-12-11-calendar-timeline-availability.png](screenshots/2026-06-12-11-calendar-timeline-availability.png) | Pass   |
+| 10  | Reviewer: overlap race       | Focused booking unit test with concurrent overlapping creates | Exactly one create succeeds and the other fails with 409/`ConflictException` | [screenshots/2026-06-17-12-concurrent-overlap-test.png](screenshots/2026-06-17-12-concurrent-overlap-test.png) | Pass   |
+| 11  | Reviewer: overlap 409        | Focused booking e2e/controller test for overlap rejection | HTTP response status is `409 Conflict` with overlap message | [screenshots/2026-06-17-13-overlap-409-response.png](screenshots/2026-06-17-13-overlap-409-response.png) | Pass   |
+| 12  | Reviewer: overnight open time | Focused open-time test output with overnight and multi-day cases | Overnight and multi-day bookings are rejected | [screenshots/2026-06-17-14-overnight-open-time-test.png](screenshots/2026-06-17-14-overnight-open-time-test.png) | Pass   |
+| 13  | Reviewer: overnight example  | Focused overnight booking rejection test output       | Mon `22:00` to Tue `02:00` fails for Mon-Fri `9AM to 6PM` room | [screenshots/2026-06-17-15-overnight-booking-rejected.png](screenshots/2026-06-17-15-overnight-booking-rejected.png) | Pass   |
 
 ## Notes
 
@@ -47,3 +51,4 @@ Example:
 | ---------- | ---------- | -------------------- | ---------------------------------------------------------------------- |
 | 2026-06-11 | Jack Huynh | Local Docker runtime | Captured admin seeded location tree at `http://localhost:3000/admin/`. |
 | 2026-06-12 | Codex      | Local Docker runtime | Captured final functional evidence for location CRUD and booking rules. |
+| 2026-06-17 | Codex      | Local focused tests  | Captured reviewer-fix evidence for transaction-protected overlap creation and same-day open-time validation. |
